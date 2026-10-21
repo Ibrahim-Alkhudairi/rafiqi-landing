@@ -1,0 +1,48 @@
+{
+  "title": "Choose the visual world",
+  "question": "Safer hand: three familiar directions from Rafiqi's own world, plus the category standard. Pick one, or re-roll.",
+  "options": [
+    {
+      "id": "safer-chat",
+      "label": "Conversation Thread",
+      "lineage": "the chat thread and shared location pin everyone uses to arrange a meeting",
+      "thesis": "Rafiqi told as the conversation that sets up a meeting: request, accepted, location, I have arrived.",
+      "palette": ["#ffffff", "#2788ea", "#f6f1f8", "#fdefbe", "#111318"],
+      "materials": ["message bubbles", "shared-location card", "status pills"],
+      "viewport": "Headline on one side; on the other a short example thread: your request, the volunteer accepting, a location card with the pin, and the yellow 'volunteer arrived' pill.",
+      "risk": "Chat bubbles are familiar to the point of cliché; the thread must be labelled as an example and stay readable to screen readers."
+    },
+    {
+      "id": "safer-ticket",
+      "label": "Appointment Slip",
+      "lineage": "the booking slip and queue ticket from hospital and ministry visits",
+      "thesis": "Every request is a slip with a number, a date, a time and a place, and the page is built from them.",
+      "palette": ["#ffffff", "#2788ea", "#f6f1f8", "#fdefbe", "#111318"],
+      "materials": ["perforated slips", "ticket stubs", "stamped status"],
+      "viewport": "A large request slip (#481, date, start and end time, meeting point) beside the headline, its torn stub holding the download buttons.",
+      "risk": "Can feel like an events-ticketing site if the slip turns decorative instead of carrying the real request details."
+    },
+    {
+      "id": "safer-metro",
+      "label": "Metro Map",
+      "lineage": "the Riyadh Metro line diagram",
+      "thesis": "Your route and the volunteer's are two lines that meet at an interchange station.",
+      "palette": ["#ffffff", "#2788ea", "#32c0ff", "#fdefbe", "#111318"],
+      "materials": ["transit line diagram", "station roundels", "line colours"],
+      "viewport": "Two coloured lines cross the hero and meet at an interchange marked with the pin; the steps below are stations along the line.",
+      "risk": "Closest to the current route motif, and transit diagrams are a common how-it-works trope."
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code" },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A clean mobile-app landing page at the craft level of Be My Eyes, Careem and Sehhaty.",
+    "palette": ["#ffffff", "#2788ea", "#111318"],
+    "materials": ["real app screens in device frames", "benefit row"],
+    "viewport": "Headline with the real app screens, a short benefit row, the steps, and a download band.",
+    "risk": "Looks like every app page by design; the craft has to carry it."
+  },
+  "steer": true
+}

@@ -1,0 +1,132 @@
+{
+  "title": "Choose the visual world",
+  "question": "The roll assigned Public Information Signs. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Public Information Signs",
+      "kicker": "THE ROLL",
+      "lineage": "ISO 7001 / AIGA public-information pictograms and bilingual Saudi wayfinding plates",
+      "thesis": "Rafiqi explained the way public buildings explain themselves: a pictogram, a destination, an arrow.",
+      "palette": ["#ffffff", "#2788ea", "#f6f1f8", "#fdefbe", "#fa541d", "#019380", "#111318"],
+      "materials": ["enamel sign plates", "pictograms on one strict grid", "bilingual sign lettering"],
+      "viewport": "One big sign plate: the meeting-pin pictogram, رفيقي in heavy sign lettering, an arrow to download, the real app screen mounted beside it like a building directory.",
+      "risk": "Turns municipal and cold if the pictograms look like clip art or the plates slide back into a card grid.",
+      "raised": [
+        { "from": "challenger-onebit", "raise": "Every pictogram is drawn on one 48-unit grid at one stroke weight; no mixed icon library." },
+        { "from": "challenger-segment", "raise": "Absence is designed: steps not yet reached show as ghost plates, not dimmed text." },
+        { "from": "challenger-cloud", "raise": "Category colour lives only inside its pictogram field, never in text or decoration." },
+        { "from": "challenger-coptic", "raise": "Structure is the only ornament: the route line is the page's spine and its stops count the sections." },
+        { "from": "challenger-consumer", "raise": "App blue appears only where something can be pressed or travelled." },
+        { "from": "challenger-command", "raise": "Plates are ruled and framed, labels stacked Arabic over English like Saudi public signs." }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Hospital Floor Lines",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "colour-coded guide lines painted on Saudi hospital and ministry floors",
+      "thesis": "Follow the line: each kind of help is a coloured floor line leading to its own destination.",
+      "palette": ["#ffffff", "#2788ea", "#fa541d", "#9420a8", "#f94a48", "#019380", "#111318"],
+      "materials": ["floor paint lines", "terrazzo", "wall department plaques"],
+      "viewport": "Coloured lines run in from the screen edge and converge at the meeting pin beside the headline.",
+      "risk": "The most literal reading of 'route' and close to the current motif, so it can feel like a re-skin."
+    },
+    {
+      "id": "challenger-segment",
+      "label": "Queue Number Display",
+      "verdict": "declined",
+      "lineage": "seven-segment displays: hospital queue boards, clocks, price totems",
+      "thesis": "Your request number lights up like the queue board you watch at every appointment.",
+      "palette": ["#111111", "#ff3b1f", "#ffb000"],
+      "materials": ["LED segments", "ghost cells"],
+      "viewport": "Request #481 in giant segments beside the headline.",
+      "case": "Queue boards are familiar from hospital visits, but lit-on-black breaks the binding light theme and hurts clarity.",
+      "kept": "Designed absence: unlit states drawn on purpose.",
+      "risk": "Novelty over clarity.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-seven-segment-alarm-clock-hero.webp"
+    },
+    {
+      "id": "challenger-consumer",
+      "label": "Warm Consumer App",
+      "verdict": "declined",
+      "lineage": "soft-cornered consumer app cards",
+      "thesis": "The page as a friendly app screen.",
+      "palette": ["#fdf8fe", "#ffffff", "#2788ea"],
+      "materials": ["rounded cards", "bottom bar"],
+      "viewport": "Stacked cards with one bright action colour.",
+      "case": "This is the card-grid look you flagged as AI-made.",
+      "kept": "Action colour only where you can press.",
+      "risk": "Indistinguishable from the current page.",
+      "hero": "https://impeccable.style/worlds/cards/digital-design-canon-warm-consumer-app-surface-hero.webp"
+    },
+    {
+      "id": "challenger-coptic",
+      "label": "Exposed Binding",
+      "verdict": "declined",
+      "lineage": "Coptic chain-stitch bookbinding",
+      "thesis": "Structure shown as the only ornament.",
+      "palette": ["#e9e1d1", "#8a6a45", "#3b3226"],
+      "materials": ["linen thread", "wooden boards"],
+      "viewport": "Sections stitched along a visible spine.",
+      "case": "Beautiful but foreign to the audience; the thread metaphor blurs the meeting idea.",
+      "kept": "Structure is the only ornament.",
+      "risk": "Bookish and off-subject.",
+      "hero": "https://impeccable.style/worlds/cards/craft-making-coptic-exposed-binding-hero.webp"
+    },
+    {
+      "id": "challenger-command",
+      "label": "Anime Command Center",
+      "verdict": "declined",
+      "lineage": "nineties mecha-anime crisis walls",
+      "thesis": "Every request as an alert on the big board.",
+      "palette": ["#000000", "#ff7a00", "#9cff00"],
+      "materials": ["phosphor type", "hazard chevrons"],
+      "viewport": "A countdown wall with bilingual labels.",
+      "case": "Alarm energy is wrong for calm companionship and breaks the light theme.",
+      "kept": "Ruled, framed, bilingual stacked labels.",
+      "risk": "Alarming.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-anime-command-center-hero.webp"
+    },
+    {
+      "id": "challenger-onebit",
+      "label": "One-bit Desktop",
+      "verdict": "declined",
+      "lineage": "early black-and-white desktop computers",
+      "thesis": "The app as windows on a dithered desktop.",
+      "palette": ["#000000", "#ffffff"],
+      "materials": ["1-bit pixels", "dither"],
+      "viewport": "A window holding the request form.",
+      "case": "Beneficiaries do not identify with it, and dithering hurts low vision.",
+      "kept": "One drawing grammar for every icon.",
+      "risk": "Retro novelty.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-one-bit-desktop-hero.webp"
+    },
+    {
+      "id": "challenger-cloud",
+      "label": "Iridescent Cloud Edge",
+      "verdict": "declined",
+      "lineage": "cloud iridescence",
+      "thesis": "Colour only at the edge.",
+      "palette": ["#ffffff", "#5b6470", "#9be7c4", "#f4a7c0"],
+      "materials": ["cloud white", "spectral fringe"],
+      "viewport": "A white field with a thin colour fringe.",
+      "case": "No link to companionship or getting around.",
+      "kept": "Colour confined to its own band.",
+      "risk": "Vague.",
+      "hero": "https://impeccable.style/worlds/cards/clouds-storms-auroras-iridescent-cloud-edge-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code" },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A mobile-app landing page executed cleanly.",
+    "palette": ["#ffffff", "#2788ea", "#111318"],
+    "materials": ["phone mockup", "feature grid"],
+    "viewport": "Headline and phone mockup, then a feature grid, steps and a download band.",
+    "risk": "Indistinguishable from every app landing page by design."
+  },
+  "steer": true
+}

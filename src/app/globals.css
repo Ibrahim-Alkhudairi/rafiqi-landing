@@ -1,0 +1,173 @@
+/* Light only, sampled from the Rafiqi app UI. The app's #2788EA carries no
+   text here (white on it is 3.7:1); text-bearing blues are deepened from it:
+   --action for large bold text (4.9:1), --link for body-size text (7.6:1 on
+   --band, 8.5:1 on white). */
+:root {
+  color-scheme: light;
+  --bg: #ffffff; /* the page between the coloured blocks is white */
+  --hero: #0e1a3b; /* hero and top bar: night navy, from the app icon's wordmark */
+  --on-hero: #ffffff; /* 17:1 on --hero */
+  --on-hero-soft: #c9d3e8; /* 11.4:1 on --hero */
+  --on-hero-icon: #32c0ff; /* the app's cyan, 8.2:1 on --hero */
+  --panel: #f5efe6; /* journey cards: sand; muted text 8.6:1+ on it */
+  --tint: #fdf8fe; /* app header */
+  --band: #f6f1f8; /* app sheet title band */
+  --surface: #ffffff;
+  --ink: #111318;
+  --muted: #3f434c; /* 7:1+ even on the light-blue outgoing bubble */
+  --brand: #2788ea; /* app primary: lines, rings, accents */
+  --action: #1d6fd6;
+  --action-hover: #165cb5;
+  --link: #0a4a9f;
+  --on-action: #ffffff;
+  --cyan: #32c0ff;
+  --cyan-tint: #dfeef7; /* app distance chip */
+  --yellow: #ffc93c;
+  --pill: #fdefbe; /* app status pill */
+  --on-pill: #4f3f12;
+  --line: #e6e1ea;
+  --frame: #111318;
+  --focus: #0a4a9f;
+  --on-cyan: #0e1a3b;
+
+  /* Spacing scale, 4px base. */
+  --space-1: 0.25rem; /* 4 */
+  --space-2: 0.5rem; /* 8 */
+  --space-3: 0.75rem; /* 12 */
+  --space-4: 1rem; /* 16 */
+  --space-5: 1.25rem; /* 20 */
+  --space-6: 1.5rem; /* 24 */
+  --space-8: 2rem; /* 32 */
+  --space-10: 2.5rem; /* 40 */
+  --space-12: 3rem; /* 48 */
+  --space-16: 4rem; /* 64 */
+
+  /* Type scale 12/14/16/20/24/32/40. Deliberate exceptions: 18px body text,
+     because the audience includes low-vision readers, and fluid display
+     sizes above 40px for headlines. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-body: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.5rem;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 2px rgb(17 19 24 / 0.06), 0 14px 36px -14px rgb(17 19 24 / 0.22);
+  --shadow-float: 0 12px 32px -14px rgb(17 19 24 / 0.28);
+  --shadow-lift: 0 30px 60px -30px rgb(17 19 24 / 0.35);
+  --shadow-device: 0 40px 80px -40px rgb(17 19 24 / 0.45);
+
+  --radius-l: 16px;
+  --radius-m: 12px;
+  --header-h: 4.5rem;
+  --page: min(100% - 2rem, 72rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: 1rem;
+  -webkit-text-size-adjust: 100%;
+  interpolate-size: allow-keywords;
+  accent-color: var(--action);
+  scrollbar-color: var(--line) var(--bg);
+}
+
+/* Same query as the sticky .header in page.module.css. */
+@media (min-width: 22.5em) and (min-height: 30em) {
+  html {
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+}
+::selection {
+  background: var(--yellow);
+  color: #0e1a3b;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-readex), system-ui, sans-serif;
+  font-size: var(--text-body);
+  line-height: 1.6;
+  overflow-wrap: break-word; /* large text: long words wrap instead of overflowing */
+}
+
+html[lang="ar"] body {
+  line-height: 1.75;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
+  text-wrap: balance;
+  /* "anywhere" (unlike break-word) also lowers min-content, so grid columns
+     can't be forced wider than the screen by one huge word at 200% text. */
+  overflow-wrap: anywhere;
+}
+
+html[lang="ar"] :is(h1, h2, h3) {
+  line-height: 1.45;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--link);
+  text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+main:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Phones: room for the pinned Download button, so it never covers a focused
+   element. Wider screens don't show that button. */
+html {
+  scroll-padding-bottom: 5.5rem;
+}
+
+@media (min-width: 48em) {
+  html {
+    scroll-padding-bottom: 0;
+  }
+}

@@ -1,0 +1,2532 @@
+/* Minimal, product-first: a white page, big statements, softly tinted panels
+   (one tint per journey step) with real app screens breaking out of them,
+   and the journey bar. */
+
+/* Skip link */
+.skip {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  top: var(--space-4);
+  z-index: 100;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-m);
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip:focus {
+  transform: none;
+}
+
+/* Header: one row of items, centred, that never changes layout. Behind it, a
+   single lavender surface: at the top a full-width band, and once the page
+   scrolls it shrinks (clip-path) into the pill around the same row, which
+   glides down a little. Nothing animates layout, so the browser never
+   re-lays out the bar mid-transition (no stutter) and the page never jumps.
+   --pill-x (the pill's side inset) is measured by <Header> in motion.tsx.
+   Pinned only while it fits on one row and the screen has height to spare;
+   media-query em follows the browser's text size. Keep in sync with
+   scroll-padding in globals.css. */
+.header {
+  --bar-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bar-time: 0.65s; /* longer than the 300ms rule on purpose: the user asked for a slower, smoother shrink */
+  --drop: 0.625rem; /* how far the pill glides down */
+  --reach: 1.25rem; /* surface extends below the header to hold the dropped pill */
+  --lang-w: 94px; /* .langSwitch: two 44px links, padding and edge */
+  position: relative;
+  display: flow-root; /* keeps the row's margins inside the header */
+}
+
+/* The surface: band at the top, pill when scrolled. */
+.header::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 calc(var(--reach) * -1) 0;
+  background: var(--hero);
+  clip-path: inset(0 0 var(--reach) 0 round 0);
+  transition: clip-path var(--bar-time) var(--bar-ease);
+}
+
+/* The band's bottom hairline. */
+.header::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
+  transition: opacity calc(var(--bar-time) * 0.4) var(--bar-ease);
+}
+
+.bar {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+  max-width: min(100% - 2 * (var(--lang-w) + var(--space-4) + var(--space-2)), 72rem); /* room for .langSwitch on both sides */
+  min-height: 3.5rem;
+  margin: var(--space-2) auto;
+  padding-block: var(--space-1);
+  padding-inline: var(--space-3) var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2); /* tight on phones so the pill stays one row */
+  border-radius: 999px;
+  transition: transform var(--bar-time) var(--bar-ease);
+}
+
+@media (min-width: 48em) {
+  .bar {
+    column-gap: var(--space-5);
+  }
+}
+
+/* The pill's edge and shadow (clip-path cannot carry them), settling in as
+   the shrink finishes. */
+.bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border: 1px solid var(--line);
+  border-radius: inherit;
+  box-shadow: var(--shadow-float);
+  opacity: 0;
+  transition: opacity calc(var(--bar-time) * 0.35) ease;
+}
+
+@media (min-width: 22.5em) and (min-height: 30em) {
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* Shrink the band to the pill: in from the sides to the row's width, down
+     past the bar's top margin plus the drop, corners fully round. */
+  .header[data-scrolled]::before {
+    clip-path: inset(
+      calc(0.5rem + var(--drop)) var(--pill-x, 20%) calc(var(--reach) + 0.5rem - var(--drop))
+        var(--pill-x, 20%) round 1.75rem /* half the pill's 3.5rem height */
+    );
+  }
+
+  .header[data-scrolled]::after {
+    opacity: 0;
+  }
+
+  .header[data-scrolled] .bar {
+    transform: translateY(var(--drop));
+  }
+
+  .header[data-scrolled] .langSwitch {
+    translate: 0 var(--drop);
+  }
+
+  .header[data-scrolled] .bar::before {
+    opacity: 1;
+    transition-delay: calc(var(--bar-time) * 0.55);
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.brand img {
+  border-radius: 10px;
+}
+
+/* Phones show the logo only; the name stays for screen readers. */
+.brandText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (min-width: 36rem) {
+  .brandText {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The language switch: EN | AR in the top corner, outside the bar, styled
+   like the pill (navy, hairline edge, float shadow); the current language is
+   filled white (link blue on white, 8.5:1). EN | AR, or EN | عربي on the
+   Arabic page. It sits on the bar's centre line and drops with the pill. */
+.langSwitch {
+  position: absolute;
+  top: calc(var(--space-2) + 1.75rem - 25px);
+  inset-inline-end: var(--space-4);
+  z-index: 1;
+  display: flex;
+  width: var(--lang-w);
+  padding: 2px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 999px;
+  background: var(--hero);
+  box-shadow: var(--shadow-float);
+  transition: translate var(--bar-time) var(--bar-ease);
+}
+
+/* EN on the left on the Arabic page too. */
+html[dir="rtl"] .langSwitch {
+  flex-direction: row-reverse;
+}
+
+.langSwitch a {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  height: 44px;
+  border-radius: 999px;
+  color: var(--on-hero);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    scale 0.1s ease;
+}
+
+.langSwitch [aria-current] {
+  background: var(--surface);
+  color: var(--link);
+}
+
+.langSwitch a:active {
+  scale: 0.94;
+}
+
+/* Under 22.5em the bar doesn't pin, and room for the switch on both sides
+   would push the bar onto two rows: the switch joins the row instead. */
+@media (max-width: 22.49em) {
+  .header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: var(--space-2);
+  }
+
+  .bar {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .langSwitch {
+    position: static;
+  }
+}
+
+/* Read by screen readers, not shown. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding-inline: var(--space-5);
+  border-radius: 999px;
+  background: var(--action);
+  color: var(--on-action);
+  font-size: var(--text-lg); /* 19px bold counts as large text: 4.9:1 clears AAA */
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+
+@media (hover: hover) {
+  .langSwitch a:not([aria-current]):hover {
+    background: rgb(255 255 255 / 0.14);
+  }
+
+  .button:hover {
+    background: var(--action-hover);
+  }
+}
+
+/* Type scale shared by every section. */
+.hero h1 {
+  max-width: 22ch;
+  font-size: clamp(min(2.75rem, 13vw), 1.6rem + 3.6vw, 4.75rem);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.chapter h2,
+.trust h2,
+.faqSection h2,
+.close h2 {
+  max-width: 20ch;
+  font-size: clamp(2rem, 1.2rem + 3vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+html[lang="ar"] .hero h1 {
+  line-height: 1.25;
+}
+
+html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
+  line-height: 1.3;
+}
+
+:is(.hero h1, .chapter h2, .trust h2, .faqSection h2, .close h2):lang(en) {
+  letter-spacing: -0.03em;
+}
+
+.lead {
+  max-width: 44ch;
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  color: var(--muted);
+}
+
+/* Hero: centred statement, then the phone among its notifications. */
+.hero {
+  background: var(--hero);
+  padding-block-start: clamp(2rem, 4.5vw, 3.5rem);
+  overflow-x: clip;
+  text-align: center;
+}
+
+.heroText {
+  width: min(100% - 2rem, 60rem);
+  margin-inline: auto;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+}
+
+.stores {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.stores a {
+  display: block;
+  border-radius: 10px;
+}
+
+.stores img {
+  width: auto;
+  height: 46px;
+}
+
+.proof {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-6);
+}
+
+.proof li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.proof svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--brand);
+}
+
+.volunteerLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.stage {
+  position: relative;
+  width: min(100% - 2rem, 72rem);
+  height: clamp(26rem, 50vw, 38rem);
+  margin: clamp(1.5rem, 3vw, 2.5rem) auto 0;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  perspective: 1200px;
+}
+
+.device {
+  padding: 8px;
+  border-radius: 48px;
+  background: var(--frame);
+  box-shadow: var(--shadow-device);
+}
+
+.device img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 40px;
+}
+
+/* The hero iPhone, in 3D: a stack of frame layers gives it a real edge that
+   shows as it turns, with side buttons, a dark bezel and a glass sheen on
+   the front. Two wrappers: .phone plays the rise-in, .phoneTilt holds the
+   resting pose plus the pointer tilt. */
+.phone {
+  /* Titanium, light enough for the edge to catch the light on the navy. */
+  --metal: linear-gradient(150deg, #a9afba 0%, #5d636f 38%, #3b4049 62%, #8f95a0 100%);
+  position: absolute;
+  top: 0;
+  left: 50%; /* physical on purpose: centring is the same in both directions */
+  width: clamp(15rem, 24vw, 19rem);
+  transform: translateX(-50%);
+  transform-style: preserve-3d;
+}
+
+.phoneTilt {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* The thickness: 12 layers, 1px apart in depth, behind the front. */
+.phoneLayer {
+  position: absolute;
+  inset: 0;
+  border-radius: 48px;
+  background: var(--metal);
+  transform: translateZ(calc(var(--i) * -1px));
+}
+
+.phoneLayer:first-of-type {
+  box-shadow: var(--shadow-device);
+}
+
+.phoneButton {
+  position: absolute;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--metal);
+  transform: translateZ(-6px);
+}
+
+.phoneButton:nth-of-type(1) {
+  top: 20%;
+  left: -3px; /* physical: the buttons sit on the device's own left and right */
+  height: 7%;
+}
+
+.phoneButton:nth-of-type(2) {
+  top: 29%;
+  left: -3px;
+  height: 7%;
+}
+
+.phoneButton:nth-of-type(3) {
+  top: 24%;
+  right: -3px;
+  height: 11%;
+}
+
+.phoneFace {
+  position: relative;
+  padding: 8px;
+  border-radius: 48px;
+  background: #0b0d11;
+  box-shadow:
+    inset 0 0 0 1.5px rgb(255 255 255 / 0.18),
+    inset 0 0 0 3px #0b0d11;
+}
+
+.phoneFace img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 40px;
+}
+
+/* Glass sheen across the screen. */
+.phoneFace::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 40px;
+  background: linear-gradient(115deg, rgb(255 255 255 / 0.22) 0%, rgb(255 255 255 / 0) 34%);
+  pointer-events: none;
+}
+
+/* Phones: two notifications overlap the phone's edges. */
+.note {
+  position: absolute;
+  width: min(17rem, 78%);
+}
+
+.noteInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  text-align: start;
+}
+
+.noteIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: var(--cyan-tint);
+  color: var(--action);
+}
+
+.noteIcon svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.noteText {
+  display: grid;
+  font-size: var(--text-base);
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.noteText strong {
+  font-size: var(--text-base);
+  color: var(--ink);
+}
+
+.arrivedDot {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-inline: var(--space-3);
+  border-radius: 50%;
+  background: var(--yellow);
+  box-shadow: 0 0 0 5px var(--pill);
+}
+
+.note0 {
+  top: 10%;
+  inset-inline-start: 0;
+}
+
+.note1,
+.note2 {
+  display: none;
+}
+
+.note3 {
+  top: 46%;
+  inset-inline-end: 0;
+}
+
+/* Wider screens: four notifications around the phone. */
+@media (min-width: 48em) {
+  .note {
+    width: min(21rem, 34%);
+  }
+
+  .note1,
+  .note2 {
+    display: block;
+  }
+
+  .note0 {
+    top: 8%;
+    inset-inline-start: auto;
+    inset-inline-end: calc(50% + clamp(8.5rem, 13vw, 10.5rem));
+  }
+
+  .note1 {
+    top: 14%;
+    inset-inline-start: calc(50% + clamp(9.5rem, 15vw, 12rem));
+  }
+
+  .note2 {
+    top: 40%;
+    inset-inline-end: calc(50% + clamp(9.5rem, 15vw, 12rem));
+  }
+
+  .note3 {
+    top: 46%;
+    inset-inline-end: auto;
+    inset-inline-start: calc(50% + clamp(8.5rem, 13vw, 10.5rem));
+  }
+}
+
+/* The hero story, scroll-driven in CSS alone (no JavaScript needed). The
+   stage pins from the start, under the statement; as the page scrolls, the
+   statement scrolls away and fades, then the phone rises into place from
+   the bottom, and the four notifications arrive one by one, each tied to
+   its own stretch of scroll. The navy runs the whole way: .story is
+   part of the hero. It plays only where the browser drives animations by
+   scroll, motion is welcome, and the screen has the height for it
+   (media-query em follow the browser's text size, so 200% text gets the
+   static hero above instead). Keep the heights in sync with --header-h. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (min-width: 22.5em) and (min-height: 36em) {
+    /* One screen plus the scroll distance the story plays over. Text and
+       stage share the top of one grid cell; the text scrolls, the stage
+       pins. The inset starts the timeline where the stage pins, under the
+       bar. Everything runs on this one timeline: Safari 26 can't follow
+       another element's timeline (no timeline-scope). */
+    .story {
+      --text-out: 35svh; /* the scroll the statement fades over */
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: calc(100svh - var(--header-h) + 200svh);
+      view-timeline: --story block;
+      view-timeline-inset: var(--header-h) 0;
+    }
+
+    /* The hero's top padding moves into the text, so the text's own top is
+       already under the bar and it holds still from the first scroll. */
+    .hero {
+      padding-block-start: 0;
+    }
+
+    .heroText {
+      position: relative;
+      z-index: 1; /* above the stage, so its links take the clicks */
+      grid-area: 1 / 1;
+      padding-block-start: clamp(2rem, 4.5vw, 3.5rem);
+      animation: heroTextOut linear both;
+      animation-timeline: --story;
+      /* Fades where it stands: over this range the page scrolls --text-out
+         and heroTextOut moves the text down the same distance. */
+      animation-range: contain 0% contain var(--text-out);
+    }
+
+    /* Whatever has keyboard focus stays fully visible. */
+    .heroText:focus-within {
+      animation: none;
+    }
+
+    .stage {
+      grid-area: 1 / 1 / -1 / 2;
+      align-self: start;
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100svh - var(--header-h));
+      margin-block-start: 0;
+      mask-image: none;
+      container-type: size;
+    }
+
+    /* Centred, and never taller than the screen. */
+    .phone {
+      top: 50%;
+      width: min(clamp(15rem, 24vw, 19rem), (100cqh - 3rem) * 0.46);
+      transform: translate(-50%, -50%);
+      /* Starts the moment the text has faded out. */
+      animation: phoneRise ease-out both;
+      animation-timeline: --story;
+      animation-range: contain var(--text-out) contain calc(var(--text-out) + 40svh);
+    }
+
+    .note {
+      animation: noteIn linear both;
+      animation-timeline: --story;
+    }
+
+    .note0 {
+      animation-range: contain 36% contain 48%;
+    }
+
+    .note1 {
+      animation-range: contain 50% contain 62%;
+    }
+
+    .note2 {
+      animation-range: contain 64% contain 76%;
+    }
+
+    .note3 {
+      animation-range: contain 78% contain 90%;
+    }
+
+    /* Phones: all four, stacked over the phone like arriving notifications.
+       The text is taller here, so everything starts a little later. */
+    @media (max-width: 47.99em) {
+      .note0 {
+        animation-range: contain 42% contain 54%;
+      }
+
+      .note1 {
+        animation-range: contain 56% contain 68%;
+      }
+
+      .note2 {
+        animation-range: contain 70% contain 82%;
+      }
+
+      .note3 {
+        animation-range: contain 84% contain 96%;
+      }
+
+      .note1,
+      .note2 {
+        display: block;
+      }
+
+      .note0 {
+        top: 10%;
+      }
+
+      .note1 {
+        top: 32%;
+        inset-inline-end: 0;
+      }
+
+      .note2 {
+        top: 54%;
+        inset-inline-start: 0;
+      }
+
+      .note3 {
+        top: 76%;
+      }
+    }
+
+    @media (min-width: 48em) {
+      .note0 {
+        top: 20%;
+      }
+
+      .note1 {
+        top: 28%;
+      }
+
+      .note2 {
+        top: 54%;
+      }
+
+      .note3 {
+        top: 62%;
+      }
+    }
+  }
+}
+
+/* z-index drops at the very end so the faded text sinks under the stage and
+   its links can't be clicked while invisible. */
+@keyframes heroTextOut {
+  90% {
+    z-index: 1;
+  }
+  to {
+    opacity: 0;
+    translate: 0 var(--text-out);
+    filter: blur(4px);
+    z-index: 0;
+  }
+}
+
+/* From just below the stage, which clips it. translate, not transform, so
+   the centring transform stays put. */
+@keyframes phoneRise {
+  from {
+    translate: 0 100cqh;
+  }
+}
+
+@keyframes noteIn {
+  from {
+    opacity: 0;
+    translate: 0 0.75rem;
+    scale: 0.97;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    filter: blur(0);
+  }
+}
+
+/* Manifesto: the promise in one sentence, large and centred. Where scroll
+   can drive animations and motion is welcome, its words light up one after
+   another (in reading order) as the sentence passes through the screen. */
+.manifesto {
+  width: min(100% - 2rem, 62rem);
+  margin: clamp(5rem, 11vw, 9rem) auto 0;
+  text-align: center;
+}
+
+.manifesto p {
+  font-size: clamp(1.75rem, 1rem + 2.6vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: balance;
+  view-timeline: --manifesto block;
+}
+
+html[lang="ar"] .manifesto p {
+  line-height: 1.6;
+}
+
+:lang(en) .manifesto p {
+  letter-spacing: -0.02em;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .manifesto span {
+      animation: wordLight linear both;
+      animation-timeline: --manifesto;
+      animation-range: cover calc(25% + var(--i) * 1.6%) cover calc(31% + var(--i) * 1.6%);
+    }
+  }
+}
+
+@keyframes wordLight {
+  from {
+    opacity: 0.16;
+  }
+}
+
+/* The journey: one chapter per step, each a sand card whose shape follows
+   what it shows: the picker, the map, the status track, the volunteer's list. */
+.chapter {
+  width: var(--page);
+  margin: clamp(3rem, 7vw, 6rem) auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 3rem);
+  padding: clamp(1.5rem, 4.5vw, 4rem);
+  border-radius: 36px;
+  background: var(--panel);
+  /* clip, not hidden: a hidden card would be the scroll container its
+     scroll-driven moments measure against, and they would never play. */
+  overflow: clip;
+}
+
+@media (min-width: 52rem) {
+  .chapter {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* Grid items may shrink below their content (200% text at 320px). */
+.chapter > * {
+  min-width: 0;
+}
+
+.chapterCopy {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+}
+
+.chapterCopy h2 {
+  max-width: 14ch;
+}
+
+.chapterCopy h3 {
+  margin-block-start: var(--space-4);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.chapterMedia {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.chapterCopy .stores {
+  justify-content: flex-start;
+}
+
+/* Ask: the form screen runs off the card's bottom edge. The whole card takes
+   a 12% tint of the picked kind's colour (the app's category colours); text
+   stays 8.2:1 or more and the focus ring 7:1 on every tint. */
+.ask {
+  --walk: #fa541d;
+  --shopping: #9420a8;
+  --hospital: #f94a48;
+  --gov: #a37800;
+  --transport: #019380;
+  --other: #fc561e;
+  padding-block-end: 0;
+  background: color-mix(in oklab, var(--picked) 12%, white);
+  transition: background-color 0.3s ease;
+}
+
+.ask:has([value="walk"]:checked) { --picked: var(--walk); }
+.ask:has([value="shopping"]:checked) { --picked: var(--shopping); }
+.ask:has([value="hospital"]:checked) { --picked: var(--hospital); }
+.ask:has([value="gov"]:checked) { --picked: var(--gov); }
+.ask:has([value="transport"]:checked) { --picked: var(--transport); }
+.ask:has([value="other"]:checked) { --picked: var(--other); }
+
+.ask .chapterCopy {
+  padding-block-end: clamp(1.5rem, 4.5vw, 4rem);
+}
+
+.ask .chapterMedia {
+  align-items: flex-start;
+  height: clamp(22rem, 42vw, 34rem);
+}
+
+.shot {
+  position: relative;
+  container-type: inline-size; /* for .formTitle */
+  width: min(100%, 24rem);
+  overflow: hidden;
+  border-radius: 22px;
+  box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
+}
+
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Kinds of help, in the app's category colours. */
+.chips {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Help picker. Each kind of help is a native radio inside its chip, so
+   tapping, clicking or the arrow keys pick it. The chip fills with its
+   colour and its icon acts it out on hover; a pick tints the whole card
+   (.ask) and fills in the request form beside it (.formFill). */
+.chips label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding-inline: var(--space-3) var(--space-4);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The radio itself covers the chip, invisible but focusable and clickable. */
+.chips input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chips label:has(:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* Picked: tinted, with a ring in the kind's colour (3:1 or more on white). */
+.chips label:has(:checked) {
+  background: color-mix(in oklab, var(--tone) 16%, white);
+  box-shadow: inset 0 0 0 2px var(--tone);
+}
+
+@media (hover: hover) {
+  .chips label:hover {
+    background: color-mix(in oklab, var(--tone) 12%, white);
+    transform: translateY(-2px);
+  }
+}
+
+.chips label:active {
+  transform: scale(0.96);
+}
+
+.chips svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  color: var(--tone);
+}
+
+.chips [data-tone="walk"] { --tone: var(--walk); }
+.chips [data-tone="shopping"] { --tone: var(--shopping); }
+.chips [data-tone="hospital"] { --tone: var(--hospital); }
+.chips [data-tone="gov"] { --tone: var(--gov); }
+.chips [data-tone="transport"] { --tone: var(--transport); }
+.chips [data-tone="other"] { --tone: var(--other); }
+
+/* Each icon acts its kind out while its chip is hovered or focused: the feet
+   step, the cart rolls, the hospital beats, the roof lifts, the car drives,
+   the dots bounce in turn. */
+@media (prefers-reduced-motion: no-preference) {
+  .chips svg,
+  .chips svg > * {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .chips [data-tone="walk"]:is(:hover, :has(:focus-visible)) svg > :is(:nth-child(1), :nth-child(4)) {
+    animation: chipStep 0.7s ease-in-out infinite;
+  }
+
+  .chips [data-tone="walk"]:is(:hover, :has(:focus-visible)) svg > :is(:nth-child(2), :nth-child(3)) {
+    animation: chipStep 0.7s ease-in-out -0.35s infinite;
+  }
+
+  .chips [data-tone="shopping"]:is(:hover, :has(:focus-visible)) svg {
+    animation: chipRoll 0.9s ease-in-out infinite;
+  }
+
+  .chips [data-tone="hospital"]:is(:hover, :has(:focus-visible)) svg {
+    animation: chipBeat 1s ease-in-out infinite;
+  }
+
+  .chips [data-tone="gov"]:is(:hover, :has(:focus-visible)) svg > polygon {
+    animation: chipStep 0.8s ease-in-out infinite;
+  }
+
+  .chips [data-tone="transport"]:is(:hover, :has(:focus-visible)) svg {
+    animation: chipDrive 0.8s ease-in-out infinite;
+  }
+
+  .chips [data-tone="other"]:is(:hover, :has(:focus-visible)) svg > :is(:nth-child(2), :nth-child(3), :nth-child(4)) {
+    animation: chipStep 0.9s ease-in-out infinite;
+  }
+
+  .chips [data-tone="other"]:is(:hover, :has(:focus-visible)) svg > :nth-child(3) {
+    animation-delay: 0.15s;
+  }
+
+  .chips [data-tone="other"]:is(:hover, :has(:focus-visible)) svg > :nth-child(4) {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes chipStep {
+  50% {
+    translate: 0 -2.5px;
+  }
+}
+
+@keyframes chipRoll {
+  35% {
+    translate: 2px 0;
+    rotate: -8deg;
+  }
+  70% {
+    translate: -1px 0;
+    rotate: 0deg;
+  }
+}
+
+@keyframes chipBeat {
+  15% {
+    scale: 1.2;
+  }
+  30% {
+    scale: 1;
+  }
+  45% {
+    scale: 1.1;
+  }
+  60% {
+    scale: 1;
+  }
+}
+
+@keyframes chipDrive {
+  50% {
+    translate: 2.5px -1px;
+  }
+}
+
+/* The request form, filled in for the picked kind: each field is redrawn
+   over the screenshot's own, in that field's colour (sampled), so every
+   kind, shopping included, gets the same type. Positions are measured off
+   the 787x1115 screenshot; cqi is 1% of its width. */
+.formFill,
+.formFill > span {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.formFill > span {
+  opacity: 0;
+  translate: 0 4px;
+  transition:
+    opacity 0.2s ease,
+    translate 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ask:has([value="walk"]:checked) .formFill [data-tone="walk"],
+.ask:has([value="shopping"]:checked) .formFill [data-tone="shopping"],
+.ask:has([value="hospital"]:checked) .formFill [data-tone="hospital"],
+.ask:has([value="gov"]:checked) .formFill [data-tone="gov"],
+.ask:has([value="transport"]:checked) .formFill [data-tone="transport"],
+.ask:has([value="other"]:checked) .formFill [data-tone="other"] {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* The request's name and description: inside the white boxes. */
+.formFill > span > span {
+  position: absolute;
+  inset-inline: 3.9%;
+  display: flex;
+  align-items: center;
+  padding-inline-start: 3.2cqi;
+  border-radius: 1.2cqi;
+  background: #fff;
+  color: #141414;
+  font-size: 3cqi; /* the app's placeholder size, matched by width */
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.formFill .fillTitle {
+  top: 1.3%;
+  height: 8.6%;
+  inset-inline: 2.5%;
+  padding-inline-start: 0.7cqi;
+  border-radius: 0;
+  background: #f7f2f9;
+  font-size: 4.1cqi; /* the app's own title size, matched by width */
+  font-weight: 700;
+}
+
+.fillName {
+  top: 50.2%;
+  height: 7.6%;
+}
+
+.fillText {
+  top: 60.9%;
+  height: 7.6%;
+}
+
+/* The place: over the location row's text, between its pin and chevron. */
+.formFill .fillPlace {
+  top: 79.4%;
+  height: 4%;
+  inset-inline: 17.7% 12.7%;
+  padding-inline-start: 0.8cqi;
+  background: #f5f5f5;
+}
+
+/* On the way: the real search screen beside the copy, then the map stage
+   across the card, where, on a loop, the two of you travel to the pin. */
+.way .shot {
+  width: min(100%, 21rem);
+  max-height: 22rem;
+}
+
+.mapStage {
+  position: relative;
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 52rem) {
+  .mapStage {
+    grid-column: 1 / -1;
+  }
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+}
+
+.mapGround {
+  fill: #cfe8de;
+}
+
+/* Strokes in screen pixels, so the streets read the same at every size
+   (not the routes: see below). */
+.map :is(path, circle):not(.routeYou, .routeVolunteer) {
+  vector-effect: non-scaling-stroke;
+}
+
+.street {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: clamp(6px, 1.7vw, 22px);
+}
+
+.streetMinor {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: clamp(3px, 0.8vw, 10px);
+}
+
+/* The routes stroke in map units: a non-scaling stroke dashes in screen
+   pixels, which would draw each route ahead of its dot. 11 units is about
+   9px wide on a desktop and 3px on a phone. */
+.routeYou,
+.routeVolunteer {
+  fill: none;
+  stroke-width: 11px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1; /* pathLength=1: a dash the length of the route */
+}
+
+.routeYou {
+  stroke: var(--ink);
+}
+
+.routeVolunteer {
+  stroke: var(--action);
+}
+
+.dotYou {
+  fill: var(--ink);
+  stroke: #ffffff;
+  stroke-width: 4px;
+}
+
+.dotVolunteer {
+  fill: var(--action);
+  stroke: #ffffff;
+  stroke-width: 4px;
+}
+
+.pinShape {
+  fill: var(--brand);
+  stroke: #ffffff;
+  stroke-width: 3px;
+}
+
+/* Rings out from the pin when the two of you arrive. */
+.meetRing {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 3px;
+  opacity: 0;
+}
+
+.mapFrame {
+  position: relative;
+}
+
+/* Pauses a loop (WCAG 2.2.2): a checkbox, so it works without JavaScript;
+   checked means paused. Shown only where loops play: after what it pauses,
+   or in the map's bottom left on wide screens (physical: the map is a
+   picture). */
+.pause {
+  display: none;
+  position: relative;
+  margin-block-start: var(--space-2);
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.pause input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.pause:has(:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.pause svg {
+  grid-area: 1 / 1;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.pause:has(:checked) .pauseIcon,
+.pause:not(:has(:checked)) .playIcon {
+  display: none;
+}
+
+.mapCaption {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.mapCaption h3 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+
+.mapCaption p {
+  color: var(--muted);
+}
+
+.meetCard {
+  display: grid;
+  gap: var(--space-1);
+  width: min(100%, 19rem);
+  padding: var(--space-4) var(--space-5);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  font-size: var(--text-base);
+  color: var(--muted);
+}
+
+.meetCard strong {
+  color: var(--ink);
+}
+
+/* Only the meeting point (routes, pin and popup), place and distance for the
+   kind of help picked in the Ask chapter: every other kind's is hidden. */
+main:has([value="walk"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([data-tone="walk"]),
+main:has([value="shopping"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([data-tone="shopping"]),
+main:has([value="hospital"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([data-tone="hospital"]),
+main:has([value="gov"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([data-tone="gov"]),
+main:has([value="transport"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([data-tone="transport"]),
+main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([data-tone="other"]) {
+  display: none;
+}
+
+/* The place's popup over the pin (positioned from page.tsx in % of the map;
+   --a is where it hangs off the pin, 0 to 1, and its tail follows). */
+.meetPop {
+  position: absolute;
+  z-index: 2;
+  translate: calc(var(--a) * -100% + (2 * var(--a) - 1) * 1.5rem) -100%;
+  width: max-content;
+  max-width: 60%; /* of the map, so a long name wraps instead of running off it */
+  padding: var(--space-1) var(--space-2);
+  border-radius: 10px;
+  background: var(--ink);
+  box-shadow: var(--shadow-soft);
+  color: #ffffff;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  line-height: 1.25;
+  pointer-events: none;
+  transform-origin: calc(1.5rem + var(--a) * (100% - 3rem)) 100%;
+}
+
+.meetPop::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: calc(1.5rem + var(--a) * (100% - 3rem));
+  translate: -50% 0;
+  border: 6px solid transparent;
+  border-top-color: var(--ink);
+}
+
+/* Wide screens: caption and meeting card float on the map. The map is a
+   picture, so they sit by physical side: the caption in the empty top left,
+   the card 60% across and halfway down, right of every meeting point. */
+@media (min-width: 52rem) {
+  .mapCaption {
+    position: absolute;
+    top: var(--space-5);
+    left: var(--space-5);
+    max-width: 17rem;
+    padding: var(--space-4) var(--space-5);
+    border-radius: 18px;
+    background: rgb(255 255 255 / 0.92);
+  }
+
+  .mapStage .meetCard {
+    position: absolute;
+    top: 56%;
+    left: 60%;
+  }
+
+  .mapCaption {
+    z-index: 1; /* over the map frame, which comes after it */
+  }
+
+  .meetPop {
+    padding: var(--space-2) var(--space-3);
+    border-radius: 12px;
+    font-size: var(--text-sm);
+  }
+
+  .mapFrame .pause {
+    position: absolute;
+    bottom: var(--space-3);
+    left: var(--space-3);
+    margin: 0;
+  }
+}
+
+.distance {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  color: var(--link);
+}
+
+.distance svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--brand);
+}
+
+/* The arrival, on a loop: the two of you set off from your points, each
+   route drawing in behind its dot, and arrive at the pin together, which
+   rings; then all fades and starts again. Travel runs 5% to 65% of the loop.
+   The dots' keyframes depend on the route, so RouteMap (page.tsx) writes
+   them and names them on each dot; this sets their timing. */
+@media (prefers-reduced-motion: no-preference) {
+  .mapStage {
+    --loop: 4.5s;
+  }
+
+  .pause {
+    display: grid;
+  }
+
+  .mapStage :is(.routeYou, .routeVolunteer) {
+    animation: routeLoop var(--loop) linear infinite;
+  }
+
+  .dotYou,
+  .dotVolunteer {
+    animation-duration: var(--loop);
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .meetRing {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: meetRing var(--loop) ease-out infinite;
+  }
+
+  .meetPop {
+    animation: meetPop var(--loop) ease-out infinite;
+  }
+
+  .mapStage .pin {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: pinDrop var(--loop) ease-out infinite;
+  }
+
+  .mapStage:has(.pause :checked) :is(.routeYou, .routeVolunteer, .dotYou, .dotVolunteer, .meetRing, .meetPop, .pin) {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes routeLoop {
+  0%,
+  5% {
+    stroke-dashoffset: 1;
+    opacity: 1;
+  }
+  65%,
+  85% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  95%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* Pops up as the dots reach the pin (65%), stays, and fades with them. */
+@keyframes meetPop {
+  0%,
+  65% {
+    opacity: 0;
+    scale: 0.8;
+  }
+  71%,
+  85% {
+    opacity: 1;
+    scale: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+    scale: 1;
+  }
+}
+
+@keyframes meetRing {
+  0%,
+  65% {
+    scale: 0.6;
+    opacity: 0;
+  }
+  67% {
+    opacity: 0.9;
+  }
+  88%,
+  100% {
+    scale: 3.5;
+    opacity: 0;
+  }
+}
+
+/* Drops in as the dots set off, and fades with the rest at the end. */
+@keyframes pinDrop {
+  0% {
+    opacity: 0;
+    translate: 0 -24px;
+    scale: 0.6;
+  }
+  6%,
+  85% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* At the meeting: the request's path as a track, and the real status screen
+   with "volunteer arrived" floating over it. */
+.meet .chapterMedia {
+  align-self: center;
+  padding-block-start: var(--space-10);
+}
+
+.meet .shot {
+  width: min(100%, 28rem);
+}
+
+.floatNote {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-2) var(--space-5);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  font-weight: 700;
+  max-width: 100%;
+  overflow-wrap: anywhere; /* 200% text on a phone */
+}
+
+/* The track: a dot per step, joined by segments that fill in turn on a loop;
+   the last dot is the app's "arrived" yellow. Drawn complete by default; the
+   loop only starts it empty. */
+.steps {
+  --dot: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-6);
+}
+
+.steps li {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  padding-inline-start: calc(var(--dot) + var(--space-4));
+}
+
+.steps li::before {
+  content: "";
+  position: absolute;
+  top: 0.25rem;
+  inset-inline-start: 0;
+  z-index: 1;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: inset 0 0 0 5px var(--ink), inset 0 0 0 7px var(--surface);
+}
+
+.steps li:last-child::before {
+  background: var(--yellow);
+  box-shadow: 0 0 0 6px var(--pill);
+}
+
+/* Segment from this dot's centre to the next one's. */
+.steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 1rem;
+  bottom: calc(-1 * var(--space-6) - 1rem);
+  inset-inline-start: calc(var(--dot) / 2 - 2px);
+  width: 4px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform-origin: top;
+}
+
+.steps strong {
+  font-size: var(--text-lg);
+}
+
+.steps span {
+  color: var(--muted);
+}
+
+/* Over a 6s loop: the first dot lights, the line fills to the second, which
+   lights, then to the last, which pops ("arrived"); it holds, then all fade
+   back and it starts again. One keyframes per dot and line, as each has its
+   own moment in the loop; not-yet-reached dots are faded. */
+@media (prefers-reduced-motion: no-preference) {
+  .steps li::before,
+  .steps li::after {
+    animation-duration: 6s;
+    animation-timing-function: ease-out;
+    animation-iteration-count: infinite;
+  }
+
+  .steps li:nth-child(1)::before {
+    animation-name: stepDot1;
+  }
+
+  .steps li:nth-child(1)::after {
+    animation-name: stepLine1;
+  }
+
+  .steps li:nth-child(2)::before {
+    animation-name: stepDot2;
+  }
+
+  .steps li:nth-child(2)::after {
+    animation-name: stepLine2;
+  }
+
+  .steps li:nth-child(3)::before {
+    animation-name: stepDot3;
+  }
+
+  .meet:has(.pause :checked) .steps li::before,
+  .meet:has(.pause :checked) .steps li::after {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes stepDot1 {
+  0%,
+  4% {
+    opacity: 0.25;
+    scale: 0.7;
+  }
+  8%,
+  88% {
+    opacity: 1;
+    scale: 1;
+  }
+  96%,
+  100% {
+    opacity: 0.25;
+    scale: 0.7;
+  }
+}
+
+@keyframes stepLine1 {
+  0%,
+  10% {
+    scale: 1 0;
+  }
+  32%,
+  88% {
+    scale: 1 1;
+    opacity: 1;
+  }
+  96%,
+  100% {
+    scale: 1 1;
+    opacity: 0;
+  }
+}
+
+@keyframes stepDot2 {
+  0%,
+  32% {
+    opacity: 0.25;
+    scale: 0.7;
+  }
+  36%,
+  88% {
+    opacity: 1;
+    scale: 1;
+  }
+  96%,
+  100% {
+    opacity: 0.25;
+    scale: 0.7;
+  }
+}
+
+@keyframes stepLine2 {
+  0%,
+  38% {
+    scale: 1 0;
+  }
+  60%,
+  88% {
+    scale: 1 1;
+    opacity: 1;
+  }
+  96%,
+  100% {
+    scale: 1 1;
+    opacity: 0;
+  }
+}
+
+@keyframes stepDot3 {
+  0%,
+  60% {
+    opacity: 0.25;
+    scale: 0.7;
+  }
+  64% {
+    opacity: 1;
+    scale: 1.3;
+  }
+  68%,
+  88% {
+    opacity: 1;
+    scale: 1;
+  }
+  96%,
+  100% {
+    opacity: 0.25;
+    scale: 0.7;
+  }
+}
+
+/* Who comes: a full-width navy band, like the hero. The licence number is
+   set as split-flap digits (it is also in the text, for screen readers). */
+.trust {
+  margin-block-start: clamp(4.5rem, 9vw, 7.5rem);
+  background: var(--hero);
+  color: var(--on-hero);
+}
+
+.trustInner {
+  width: var(--page);
+  margin-inline: auto;
+  padding-block: clamp(4rem, 9vw, 7rem);
+}
+
+.trustList {
+  list-style: none;
+  margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-10);
+}
+
+.trustList li {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--space-3);
+  padding-block-start: var(--space-6);
+  border-block-start: 1px solid rgb(255 255 255 / 0.2);
+}
+
+.trustList svg {
+  width: 3rem;
+  height: 3rem;
+  color: var(--on-hero-icon);
+}
+
+.trustList strong {
+  margin-block-start: var(--space-2);
+  font-size: var(--text-xl);
+}
+
+.trustList li > span:last-child {
+  color: var(--on-hero-soft);
+}
+
+.bigNumber {
+  display: flex;
+  gap: 0.12em;
+  direction: ltr;
+  font-size: min(2.5rem, 13vw); /* four tiles fit a 320px screen at any text size */
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bigNumber span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.1em;
+  height: 1.45em;
+  border-radius: 0.16em;
+  background: #1c2b55;
+}
+
+/* The flap's split. */
+.bigNumber span::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--hero);
+}
+
+/* Volunteer: the same card, mirrored on wide screens (the list first). */
+.volunteer .chapterMedia {
+  align-self: center;
+}
+
+.volunteer .shot {
+  width: min(100%, 26rem);
+}
+
+@media (min-width: 52rem) {
+  .volunteer .chapterMedia {
+    order: -1;
+  }
+}
+
+.points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+
+.points li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  font-size: var(--text-body);
+}
+
+.points svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-block-start: var(--space-1);
+  color: var(--brand);
+}
+
+/* "Hours count in Absher", the volunteer's reason, as its own statement. */
+.hours {
+  display: flex;
+  flex-wrap: wrap; /* the icon goes above the text when there's no room */
+  align-items: center;
+  gap: var(--space-4);
+  margin-block: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-radius: 20px;
+  background: var(--surface);
+  font-size: clamp(1.25rem, 1rem + 0.8vw, 1.625rem);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.hours svg {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--brand);
+}
+
+/* FAQ */
+/* FAQ: the heading and the phone number stay put beside the questions. */
+.faqSection {
+  width: var(--page);
+  margin: clamp(5rem, 10vw, 8.5rem) auto 0;
+  display: grid;
+  gap: var(--space-8);
+}
+
+.faqHead {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+}
+
+@media (min-width: 52rem) {
+  .faqSection {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: start;
+  }
+
+  .faqHead {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-8));
+  }
+}
+
+.faq {
+  border-block-start: 1px solid var(--line);
+}
+
+.qa {
+  border-block-end: 1px solid var(--line);
+}
+
+.qa summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 4rem;
+  padding-block: var(--space-4);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.qa summary::-webkit-details-marker {
+  display: none;
+}
+
+.qa summary::after {
+  content: "";
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  background-color: var(--action);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.qa[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.qa p {
+  max-width: 60ch;
+  padding-block-end: var(--space-5);
+  color: var(--muted);
+}
+
+@media (hover: hover) {
+  .qa summary:hover {
+    color: var(--link);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .qa::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      block-size 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+      content-visibility 0.3s allow-discrete;
+  }
+
+  .qa[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* Closing: a full-width navy band like the hero, bookending the page, with
+   the welcome screen rising from the bottom. */
+.close {
+  margin-block-start: clamp(5rem, 10vw, 8.5rem);
+  padding-block-start: clamp(4.5rem, 9vw, 7rem);
+  padding-inline: var(--space-4);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: var(--space-5);
+  overflow: hidden;
+  text-align: center;
+  background: var(--hero);
+  color: var(--on-hero);
+}
+
+.close .lead,
+.close .qr {
+  color: var(--on-hero-soft);
+}
+
+.close .qrCodes figcaption {
+  color: var(--on-hero);
+}
+
+.closePhone {
+  width: min(clamp(13rem, 20vw, 16rem), 80vw); /* never wider than a phone screen, even at 200% text */
+  height: clamp(15rem, 22vw, 19rem);
+  margin-block-start: var(--space-8);
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 65%, transparent);
+}
+
+/* Footer */
+.footer {
+  border-block-start: 1px solid var(--line);
+}
+
+.footerInner {
+  width: var(--page);
+  margin-inline: auto;
+  padding-block: var(--space-8) var(--space-10);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  color: var(--muted);
+}
+
+.systemNote {
+  max-width: 40rem;
+  padding: var(--space-2) var(--space-4);
+  border-radius: 12px;
+  background: var(--pill);
+  color: var(--on-pill);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.footerLinks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-6);
+}
+
+.footerLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 500;
+}
+
+/* The journey, in the top bar: the page's phases as links, the one on
+   screen marked. Only where the bar still fits on one row beside the
+   language switch (about 1200px); media-query em follows the browser's text
+   size. Keep in sync with .menu below. */
+.phaseNav {
+  display: none;
+}
+
+@media (min-width: 75em) {
+  .phaseNav {
+    display: block;
+  }
+}
+
+.phaseNav ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.phaseNav a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding-inline: var(--space-4);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* The phase on screen: the app's deep blue, white text at 8.5:1. */
+.phaseNav a[aria-current="true"] {
+  background: var(--link);
+  color: #ffffff;
+}
+
+.phaseNav svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  color: var(--brand);
+}
+
+.phaseNav a[aria-current="true"] svg {
+  color: #ffffff;
+}
+
+@media (hover: hover) {
+  .phaseNav a:not([aria-current="true"]):hover {
+    background: var(--surface);
+  }
+}
+
+/* FAQ help and footer contact: the same number in both places. */
+.help {
+  color: var(--muted);
+}
+
+.help a,
+.contact a {
+  font-weight: 700;
+}
+
+.contact {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* QR codes: desktop visitors only; phones install from the badges above. */
+.qr {
+  display: none;
+}
+
+@media (min-width: 48em) {
+  .qr {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    margin-block-start: var(--space-4);
+    color: var(--muted);
+  }
+}
+
+.qrCodes {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.qrCodes figure {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.qrCodes img {
+  width: 8.25rem;
+  height: auto;
+  padding: var(--space-2);
+  border-radius: var(--radius-m);
+  background: #ffffff;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.qrCodes figcaption {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Phones: the header carries no Download button; the hero's badges are on
+   screen at the top and the pinned button below takes over once they scroll
+   away. Wider screens get it back in the header. */
+.nav .button {
+  display: none;
+}
+
+@media (min-width: 48em) {
+  .nav .button {
+    display: inline-flex;
+  }
+}
+
+/* Phones: Download in thumb reach. Hidden until the hero's badges scroll
+   away (visibility, so it can't be tabbed to while hidden); not shown on
+   short landscape screens or wider ones, which have the header button. */
+.mobileCta {
+  position: fixed;
+  inset-inline: var(--space-4);
+  inset-block-end: var(--space-4);
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 3.25rem;
+  border-radius: 999px;
+  background: var(--action);
+  color: var(--on-action);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-float);
+  transform: translateY(calc(100% + var(--space-6)));
+  visibility: hidden;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.3s;
+}
+
+.mobileCta[data-shown] {
+  transform: none;
+  visibility: visible;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+
+.mobileCta svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (min-height: 30em) {
+  .mobileCta {
+    display: flex;
+  }
+}
+
+@media (min-width: 48em) {
+  .mobileCta {
+    display: none;
+  }
+}
+
+/* Pressed: every control answers a press straight away. */
+:is(.button, .phaseNav a, .stores a, .volunteerLink, .footerLinks a) {
+  transition:
+    transform 0.1s ease,
+    background-color 0.15s ease;
+}
+
+:is(.button, .phaseNav a, .stores a, .volunteerLink, .footerLinks a):active {
+  transform: scale(0.96);
+}
+
+.mobileCta[data-shown]:active {
+  transform: scale(0.97);
+}
+
+.qa summary:active {
+  color: var(--link);
+}
+
+/* Burger menu: phones, tablets and small laptops, where the journey links
+   don't fit. Language stays visible as the corner switch (.langSwitch). */
+@media (min-width: 75em) {
+  .menu {
+    display: none;
+  }
+}
+
+.menu summary {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  color: var(--ink);
+  list-style: none;
+  cursor: pointer;
+}
+
+.menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu summary svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.menuIconClose,
+.menu[open] .menuIconOpen {
+  display: none;
+}
+
+.menu[open] .menuIconClose {
+  display: block;
+}
+
+/* Centred on the bar, which is always centred on the page. Not fixed: the
+   pill's transform would trap a fixed panel inside the bar. */
+.menuPanel {
+  position: absolute;
+  top: calc(100% + var(--space-3));
+  left: 50%; /* physical on purpose: centring is the same in both directions */
+  z-index: 1;
+  width: min(100vw - 2rem, 26rem);
+  max-height: calc(100dvh - 7rem);
+  overflow-y: auto;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  transform: translateX(-50%);
+  animation: menuDrop 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes menuDrop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+}
+
+.menuPanel ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.menuPanel ol a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3rem;
+  padding-inline: var(--space-4);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.menuPanel ol svg {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--brand);
+}
+
+.menuPanel a[aria-current="true"] {
+  background: var(--link);
+  color: #ffffff;
+}
+
+.menuPanel a[aria-current="true"] svg {
+  color: #ffffff;
+}
+
+.menuDownload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 3.25rem;
+  border-radius: 999px;
+  background: var(--action);
+  color: var(--on-action);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.menuDownload svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (hover: hover) {
+  .menu summary:hover,
+  .menuPanel ol a:not([aria-current="true"]):hover {
+    background: var(--surface);
+  }
+}
+
+/* Hover: real controls and media answer the pointer, briefly (<= 250ms).
+   The help chips have their own (Help picker). */
+:is(.shot, .meetCard, .floatNote, .qrCodes img, .trustList svg) {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The hero notes grow and tilt on a spring (TiltCard in motion.tsx); only
+   the shadow is CSS. */
+.noteInner {
+  transition: box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .noteInner:hover {
+    box-shadow: var(--shadow-lift);
+  }
+
+  /* Hovering a chapter lifts its screen and floating card a little. */
+  .chapter:hover .shot {
+    transform: translateY(-6px);
+    box-shadow:
+      0 0 0 1px var(--line),
+      var(--shadow-device);
+  }
+
+  .chapter:hover :is(.meetCard, .floatNote) {
+    transform: translateY(-4px);
+  }
+
+  .stores a:hover,
+  .button:hover,
+  .menuDownload:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-float);
+  }
+
+  .qrCodes img:hover {
+    transform: scale(1.04);
+  }
+
+  .trustList li:hover svg {
+    transform: translateY(-3px) scale(1.08);
+  }
+}
+
+/* Pressed wins over the hover lift. */
+:is(.button, .stores a, .menuDownload):active {
+  transform: scale(0.96);
+  box-shadow: none;
+}
+
+/* Bold theme: the colour lives in the hero, the bar and the panels; the page
+   between them is white. Text on the night navy is white (17:1) or #C9D3E8
+   (11.4:1), icons the app's cyan; focus rings there turn yellow. */
+:is(.header, .hero, .trust, .close) :focus-visible {
+  outline-color: var(--yellow);
+}
+
+.hero {
+  color: var(--on-hero);
+}
+
+.hero .lead {
+  color: var(--on-hero-soft);
+}
+
+.hero .proof svg {
+  color: var(--on-hero-icon);
+}
+
+/* A grey shadow reads as haze on the navy; this one is the navy, deeper. */
+.hero .phoneLayer:first-of-type {
+  box-shadow: 0 40px 80px -36px rgb(2 6 18 / 0.75);
+}
+
+.hero .volunteerLink {
+  color: var(--on-hero);
+}
+
+.header::after {
+  background: rgb(255 255 255 / 0.16);
+}
+
+.header .bar::before {
+  border-color: rgb(255 255 255 / 0.2);
+}
+
+.header :is(.brand, .menu summary) {
+  color: var(--on-hero);
+}
+
+.header .phaseNav a {
+  color: var(--on-hero);
+}
+
+.header .phaseNav svg {
+  color: var(--on-hero-icon);
+}
+
+.header .phaseNav a[aria-current="true"] {
+  background: var(--surface);
+  color: var(--link);
+}
+
+.header .phaseNav a[aria-current="true"] svg {
+  color: var(--link);
+}
+
+.header .button {
+  background: var(--surface);
+  color: var(--link);
+}
+
+@media (hover: hover) {
+  .header .menu summary:hover,
+  .header .phaseNav a:not([aria-current="true"]):hover {
+    background: rgb(255 255 255 / 0.14);
+  }
+
+  .header .button:hover {
+    background: var(--on-hero-soft);
+  }
+
+  .menuPanel ol a:not([aria-current="true"]):hover {
+    background: var(--band);
+  }
+}
