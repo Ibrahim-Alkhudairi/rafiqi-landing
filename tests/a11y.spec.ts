@@ -226,6 +226,32 @@ test("hero story: the phone rises once the statement has faded, then the notific
   for (const i of [0, 3]) await expect(note(i)).toHaveCSS("opacity", "1");
 });
 
+test("hero story on phones: the phone comes up on its own the moment the statement has faded", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en");
+  const phone = page.locator("[class$='__phone']");
+  const text = page.locator("#hero-text");
+  await expect(phone).toHaveAttribute("data-rise", "down");
+  // Scroll to `by` px past where the statement has faded (--text-out is 35svh).
+  const scrollPastFade = (by: number) =>
+    page.evaluate((by) => {
+      const story = document.querySelector<HTMLElement>("[class*='__story']")!;
+      window.scrollTo({ top: story.getBoundingClientRect().top + scrollY - 72 + innerHeight * 0.35 + by, behavior: "instant" });
+    }, by);
+  await scrollPastFade(-40);
+  expect(Number(await text.evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0);
+  await expect(phone).toHaveAttribute("data-rise", "down");
+  expect((await phone.boundingBox())!.y).toBeGreaterThanOrEqual(844);
+  // Just past the fade: no more scrolling, and it rises all the way.
+  await scrollPastFade(4);
+  await expect(phone).toHaveAttribute("data-rise", "up");
+  await expect(phone).toHaveCSS("translate", "none");
+  expect((await phone.boundingBox())!.y).toBeLessThan(844 / 2);
+  // Back up into the statement: the phone goes back down.
+  await scrollPastFade(-40);
+  await expect(phone).toHaveAttribute("data-rise", "down");
+});
+
 test("help picker: a pick tints the card and fills in the request form beside it", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/en");
@@ -253,6 +279,30 @@ test("help picker: a pick tints the card and fills in the request form beside it
   await expect(page.locator("svg [data-tone='shopping']")).toBeHidden();
   await expect(page.locator("[class*='__meetCard'] strong")).toHaveText("King Abdullah Park, Al Malaz", { useInnerText: true });
   await expect(page.locator("[class*='__meetCard'] [class*='__distance']")).toHaveText("1.7 km from you", { useInnerText: true });
+});
+
+test("the app's search, live: a suggestion picks the meeting place, and a pick in Ask shows there", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/en");
+  const places = page.getByRole("radiogroup", { name: "Set the meeting point" });
+  const kinds = page.getByRole("radiogroup", { name: "What do you need company for?" });
+  const typed = page.locator("[class*='__searchText']");
+  await expect(places.getByRole("radio", { name: /^Riyadh Park, Al Aqiq/ })).toBeChecked();
+  await expect(typed).toHaveText("Riyadh Park, Al Aqiq");
+  await places.getByRole("radio", { name: /^Dr. Sulaiman Al-Habib Hospital/ }).click();
+  await expect(typed).toHaveText("Dr. Sulaiman Al-Habib Hospital, Al Olaya");
+  await expect(kinds.getByRole("radio", { name: "Hospital" })).toBeChecked();
+  await expect(page.locator("svg [data-tone='hospital']")).toBeVisible();
+  await expect(page.locator("svg [data-tone='shopping']")).toBeHidden();
+  // Keyboard: the arrow keys move down the suggestions.
+  await page.keyboard.press("ArrowDown");
+  await expect(typed).toHaveText("Civil Affairs office, Al Malaz");
+  // A pick in Ask types itself in, and its row scrolls into view in the box.
+  await kinds.getByRole("radio", { name: "Other needs" }).click();
+  await places.scrollIntoViewIfNeeded(); // the page only; the box scrolls itself
+  await expect(typed).toHaveText("Kingdom Tower, Al Olaya");
+  await expect(places.getByRole("radio", { name: /^Kingdom Tower/ })).toBeChecked();
+  await expect(places.getByRole("radio", { name: /^Kingdom Tower/ })).toBeInViewport({ ratio: 0.9 });
 });
 
 test("map: the two of you travel to the pin on a loop, and it can be paused", async ({ page }) => {

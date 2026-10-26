@@ -174,6 +174,73 @@ export function MobileMenu({ t, label, download }: { t: Phases; label: string; d
   );
 }
 
+// On the way: the app's search screen, live. Its suggestion box lists the
+// places you could meet, its field shows the one picked, and a tap on a
+// suggestion picks it: that checks the place's Ask chip (the radios named
+// "help"), so the map, its card and the Ask card all follow; a pick in Ask
+// shows up here. Until JavaScript runs, the screenshot shows as it is.
+export function PlaceSearch({
+  labelledBy,
+  places,
+  away,
+}: {
+  labelledBy: string;
+  places: { icon: string; place: string; km: string }[];
+  away: string;
+}) {
+  const list = useRef<HTMLDivElement>(null);
+  const [picked, setPicked] = useState<string>();
+
+  useEffect(() => {
+    setPicked(document.querySelector<HTMLInputElement>('input[name="help"]:checked')?.value);
+    const onChange = (e: Event) => {
+      const input = e.target as HTMLInputElement;
+      if (input.name === "help") setPicked(input.value);
+    };
+    document.addEventListener("change", onChange);
+    return () => document.removeEventListener("change", onChange);
+  }, []);
+
+  // The picked suggestion stays in view in the box (moving the box only,
+  // never the page, as a pick in Ask happens far above).
+  useEffect(() => {
+    const box = list.current;
+    const row = box?.querySelector<HTMLElement>("label:has(:checked)");
+    if (!box || !row) return;
+    if (row.offsetTop < box.scrollTop) box.scrollTop = row.offsetTop;
+    else if (row.offsetTop + row.offsetHeight > box.scrollTop + box.clientHeight)
+      box.scrollTop = row.offsetTop + row.offsetHeight - box.clientHeight;
+  }, [picked]);
+
+  if (!picked) return null;
+  const pick = (icon: string) => {
+    document.querySelector<HTMLInputElement>(`input[name="help"][value="${icon}"]`)!.checked = true;
+    setPicked(icon);
+  };
+  return (
+    <div className={s.search} dir="rtl">
+      {/* Typed in the field: the picked place. */}
+      <span key={picked} className={s.searchText} dir="auto" aria-hidden="true">
+        {places.find((p) => p.icon === picked)?.place}
+      </span>
+      <div ref={list} className={s.suggestions} role="radiogroup" aria-labelledby={labelledBy}>
+        {places.map(({ icon, place, km }) => (
+          <label key={icon}>
+            <input type="radio" name="place" checked={picked === icon} onChange={() => pick(icon)} />
+            <Icon name="pin" />
+            <span dir="auto">
+              <strong>{place}</strong>
+              <span>
+                {km} {away}
+              </span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Phones: a Download button in thumb reach, shown once the hero's own store
 // badges have scrolled away and hidden again at the bottom, where the
 // download section is. Hidden means visibility: hidden, so it can't be tabbed to.
@@ -203,9 +270,31 @@ export function MobileCta({ label }: { label: string }) {
 // straight, no movement.
 const rest = { rotateX: 0, rotateY: 0 };
 
-export function HeroPhone({ className, children }: { className: string; children: ReactNode }) {
+export function HeroPhone({ className, after, children }: { className: string; after: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReduced();
+  const [rise, setRise] = useState<"down" | "up">();
+
+  // Up once the statement (id `after`) has fully faded, down while any of it
+  // shows. On phones the CSS plays the rise in one go off this, instead of
+  // over a stretch of scroll; elsewhere it's unused.
+  useEffect(() => {
+    const text = document.getElementById(after);
+    if (!text) return;
+    // Read a frame later: during the scroll event the fade hasn't caught up
+    // with the scroll yet, and stopping right where it ends would read 0.001.
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setRise(getComputedStyle(text).opacity === "0" ? "up" : "down"));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [after]);
   const tiltX = useMotionValue(rest.rotateX);
   const tiltY = useMotionValue(rest.rotateY);
   const rotateX = useSpring(tiltX, { stiffness: 150, damping: 18 });
@@ -237,7 +326,7 @@ export function HeroPhone({ className, children }: { className: string; children
   }, [reduce, tiltX, tiltY]);
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} data-rise={rise}>
       <m.div className={s.phoneTilt} style={reduce ? rest : { rotateX, rotateY }}>
         {Array.from({ length: 12 }, (_, i) => (
           <span key={i} className={s.phoneLayer} style={{ "--i": 12 - i } as CSSProperties} aria-hidden="true" />

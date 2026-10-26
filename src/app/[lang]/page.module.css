@@ -636,7 +636,11 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
       z-index: 1; /* above the stage, so its links take the clicks */
       grid-area: 1 / 1;
       padding-block-start: clamp(2rem, 4.5vw, 3.5rem);
-      animation: heroTextOut linear both;
+      /* Longhands: the build expands a list in the shorthand with 0s
+         durations, which end a scroll-driven animation before it starts. */
+      animation-name: heroTextOut, heroTextSink;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
       animation-timeline: --story;
       /* Fades where it stands: over this range the page scrolls --text-out
          and heroTextOut moves the text down the same distance. */
@@ -715,6 +719,18 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
         display: block;
       }
 
+      /* The phone comes up in one go the moment the statement has faded,
+         no more scrolling needed. <HeroPhone> sets data-rise once it runs;
+         until then (or without JavaScript) it rises with the scroll. */
+      .phone[data-rise] {
+        animation: none;
+        transition: translate 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .phone[data-rise="down"] {
+        translate: 0 100cqh;
+      }
+
       .note0 {
         top: 10%;
       }
@@ -754,16 +770,25 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
   }
 }
 
-/* z-index drops at the very end so the faded text sinks under the stage and
-   its links can't be clicked while invisible. */
+/* Scroll-linked keyframes stay to opacity and transforms, which the browser
+   runs off the main thread in step with the scroll. A blur or a z-index
+   would put the whole animation on the main thread, a frame behind the
+   scroll, and the text that should hold still would judder. */
 @keyframes heroTextOut {
+  to {
+    opacity: 0;
+    translate: 0 var(--text-out);
+  }
+}
+
+/* Its own animation, so it can't hold heroTextOut back: z-index drops at the
+   very end so the faded text sinks under the stage and its links can't be
+   clicked while invisible. */
+@keyframes heroTextSink {
   90% {
     z-index: 1;
   }
   to {
-    opacity: 0;
-    translate: 0 var(--text-out);
-    filter: blur(4px);
     z-index: 0;
   }
 }
@@ -781,13 +806,11 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
     opacity: 0;
     translate: 0 0.75rem;
     scale: 0.97;
-    filter: blur(4px);
   }
   to {
     opacity: 1;
     translate: 0 0;
     scale: 1;
-    filter: blur(0);
   }
 }
 
@@ -1176,6 +1199,139 @@ html[lang="ar"] .manifesto p {
   max-height: 22rem;
 }
 
+/* The app's search, live (PlaceSearch in motion.tsx): its field and its
+   suggestion box redrawn over the screenshot's own, in their colours
+   (sampled). Positions are measured off the 784x1048 screenshot, all in cqi
+   (1% of its width), as the shot is cropped at the bottom; physical sides,
+   as it's a picture of the app, laid out right to left. */
+.search > * {
+  position: absolute;
+}
+
+/* What's typed: the picked place, beside the search icon, with a caret. */
+.searchText {
+  top: 2.6cqi;
+  left: 12.8cqi;
+  right: 16.2cqi;
+  height: 7cqi;
+  background: #f5f5f5;
+  color: #141414;
+  font-size: 3.3cqi;
+  line-height: 7cqi;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: searchIn 0.3s ease-out;
+}
+
+.searchText::after {
+  content: "";
+  display: inline-block;
+  width: 0.3cqi;
+  height: 4.2cqi;
+  margin-inline-start: 0.4cqi;
+  vertical-align: middle;
+  background: #2c7edb;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .searchText::after {
+    animation: caretBlink 1.1s steps(1) infinite;
+  }
+}
+
+@keyframes searchIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes caretBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* The suggestions: the places you could meet, as the app's rows, in a box
+   that scrolls like the real list (the cut-off third row says so). */
+.suggestions {
+  top: 13.8cqi;
+  left: 2.9cqi;
+  right: 2.8cqi;
+  height: 39.7cqi;
+  overflow-y: auto;
+  scrollbar-width: none;
+  border: 1px solid #e1e1e1;
+  border-radius: 2.6cqi;
+  background: #ffffff;
+}
+
+.suggestions label {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.6cqi minmax(0, 1fr); /* pin, then text, from the right */
+  align-items: center;
+  column-gap: 5.1cqi;
+  height: 15.3cqi;
+  padding-right: 5.1cqi;
+  padding-left: 3cqi;
+  border-bottom: 1px solid #e6e6e6;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+/* The radio covers the row, invisible but focusable and clickable. */
+.suggestions input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.suggestions svg {
+  width: 3.6cqi;
+  height: 4.3cqi;
+  color: #2c7edb;
+}
+
+.suggestions label > span {
+  display: grid;
+  gap: 0.6cqi;
+  text-align: right;
+  line-height: 1.25;
+}
+
+.suggestions strong {
+  overflow: hidden;
+  color: #000000;
+  font-size: 3.1cqi;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.suggestions label > span > span {
+  color: #38363b;
+  font-size: 2.6cqi;
+}
+
+/* The picked place: the app's light blue; focus shows inside the row. */
+.suggestions label:has(:checked) {
+  background: var(--cyan-tint);
+}
+
+.suggestions label:has(:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+@media (hover: hover) {
+  .suggestions label:not(:has(:checked)):hover {
+    background: #f5f5f5;
+  }
+}
+
 .mapStage {
   position: relative;
   display: grid;
@@ -1266,6 +1422,7 @@ html[lang="ar"] .manifesto p {
 .mapFrame {
   position: relative;
 }
+
 
 /* Pauses a loop (WCAG 2.2.2): a checkbox, so it works without JavaScript;
    checked means paused. Shown only where loops play: after what it pauses,

@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { content, hasLang, links } from "@/content";
 import { requestFills, type Content } from "@/content/ar";
 import { Icon, type IconName } from "./icons";
-import { Header, HeroPhone, MobileCta, MobileMenu, PhaseNav, TiltCard } from "./motion";
+import { Header, HeroPhone, MobileCta, MobileMenu, PhaseNav, PlaceSearch, TiltCard } from "./motion";
 import s from "./page.module.css";
 
 const notePlaces = [s.note0, s.note1, s.note2, s.note3];
@@ -60,7 +60,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
           {/* Where the story plays, this runs tall: the stage pins inside it,
               the text scrolls away over it (page.module.css, "The hero story"). */}
           <div className={s.story}>
-            <div className={s.heroText}>
+            <div id="hero-text" className={s.heroText}>
               <h1 id="hero-title">{t.hero.title}</h1>
               <p className={s.lead}>{t.hero.lead}</p>
               <StoreBadges t={t} />
@@ -78,7 +78,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
             </div>
 
             <div className={s.stage}>
-              <HeroPhone className={s.phone}>
+              <HeroPhone className={s.phone} after="hero-text">
                 <Image src="/screens/list.png" alt={t.hero.phoneAlt} width={804} height={1702} sizes="19rem" preload />
               </HeroPhone>
               {/* Illustrative notifications built from the app's real statuses. */}
@@ -159,7 +159,13 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
             <p className={s.lead}>{t.way.lead}</p>
           </div>
           <div className={s.chapterMedia}>
-            <Shot {...t.way.screen} />
+            <Shot {...t.way.screen}>
+              <PlaceSearch
+                labelledBy="way-title"
+                places={t.help.items.map(({ icon, place }) => ({ icon, place, km: kmTo(icon) }))}
+                away={t.way.away}
+              />
+            </Shot>
           </div>
           {/* On a loop, the two of you set off from your points and meet at
               the pin; a checkbox pauses it, without JavaScript. */}
