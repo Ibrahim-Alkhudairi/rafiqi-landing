@@ -844,7 +844,7 @@ html[lang="ar"] .manifesto p {
     .manifesto span {
       animation: wordLight linear both;
       animation-timeline: --manifesto;
-      animation-range: cover calc(25% + var(--i) * 1.6%) cover calc(31% + var(--i) * 1.6%);
+      animation-range: cover calc(33% + var(--i) * 1.6%) cover calc(39% + var(--i) * 1.6%);
     }
   }
 }
@@ -1423,48 +1423,6 @@ html[lang="ar"] .manifesto p {
   position: relative;
 }
 
-
-/* Pauses a loop (WCAG 2.2.2): a checkbox, so it works without JavaScript;
-   checked means paused. Shown only where loops play: after what it pauses,
-   or in the map's bottom left on wide screens (physical: the map is a
-   picture). */
-.pause {
-  display: none;
-  position: relative;
-  margin-block-start: var(--space-2);
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow-soft);
-}
-
-.pause input {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.pause:has(:focus-visible) {
-  outline: 3px solid var(--focus);
-  outline-offset: 3px;
-}
-
-.pause svg {
-  grid-area: 1 / 1;
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.pause:has(:checked) .pauseIcon,
-.pause:not(:has(:checked)) .playIcon {
-  display: none;
-}
-
 .mapCaption {
   display: grid;
   gap: var(--space-1);
@@ -1473,10 +1431,6 @@ html[lang="ar"] .manifesto p {
 .mapCaption h3 {
   font-size: var(--text-xl);
   font-weight: 700;
-}
-
-.mapCaption p {
-  color: var(--muted);
 }
 
 .meetCard {
@@ -1565,13 +1519,6 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
     border-radius: 12px;
     font-size: var(--text-sm);
   }
-
-  .mapFrame .pause {
-    position: absolute;
-    bottom: var(--space-3);
-    left: var(--space-3);
-    margin: 0;
-  }
 }
 
 .distance {
@@ -1596,10 +1543,6 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
 @media (prefers-reduced-motion: no-preference) {
   .mapStage {
     --loop: 4.5s;
-  }
-
-  .pause {
-    display: grid;
   }
 
   .mapStage :is(.routeYou, .routeVolunteer) {
@@ -1627,10 +1570,6 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
     transform-box: fill-box;
     transform-origin: 50% 100%;
     animation: pinDrop var(--loop) ease-out infinite;
-  }
-
-  .mapStage:has(.pause :checked) :is(.routeYou, .routeVolunteer, .dotYou, .dotVolunteer, .meetRing, .meetPop, .pin) {
-    animation-play-state: paused;
   }
 }
 
@@ -1743,7 +1682,7 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
 .steps {
   --dot: 1.5rem;
   list-style: none;
-  margin: 0;
+  margin: var(--space-4) 0 0;
   padding: 0;
   display: grid;
   gap: var(--space-6);
@@ -1825,11 +1764,6 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
 
   .steps li:nth-child(3)::before {
     animation-name: stepDot3;
-  }
-
-  .meet:has(.pause :checked) .steps li::before,
-  .meet:has(.pause :checked) .steps li::after {
-    animation-play-state: paused;
   }
 }
 

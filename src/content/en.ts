@@ -17,8 +17,7 @@ export const en: Content = {
   download: "Download",
   hero: {
     title: "A verified companion for every outing",
-    lead: "Ask for a volunteer, verified through Nafath, to go with you on a walk, shopping, to a hospital visit or to a government office.",
-    platforms: "Free on iPhone, iPad and Android",
+    lead: "Ask for a volunteer to go with you on a walk, shopping, to the hospital or to a government office.",
     volunteer: "I want to volunteer",
     proof: [
       { icon: "verified", text: "Volunteers verified through Nafath" },
@@ -58,9 +57,8 @@ export const en: Content = {
   manifesto: "Not a ride. Not a carer. A verified person from your community who meets you where you choose, and goes with you.",
   before: {
     title: "Ask for a companion in a minute",
-    lead: "Choose the kind of help, set the date with a start and end time, and say what you need.",
+    lead: "Pick the kind of help, the date and time, and say what you need.",
     panelTitle: "What do you need company for?",
-    panelText: "Six kinds of help, from a short walk to a government office.",
     screen: {
       src: "/screens/request-crop.png",
       w: 787,
@@ -70,12 +68,10 @@ export const en: Content = {
   },
   way: {
     title: "Set the meeting point",
-    lead: "Search for the place or use your current location, so the volunteer knows where to meet you and how far away you are.",
+    lead: "Search for a place or use your current location, so the volunteer knows where to meet you.",
     panelTitle: "Two routes, one meeting point",
-    panelText: "You and the volunteer both head to the place you chose.",
     meeting: "Meeting point",
     away: "km from you",
-    pause: "Pause the map animation",
     screen: {
       src: "/screens/map-crop.png",
       w: 784,
@@ -85,16 +81,13 @@ export const en: Content = {
   },
   meet: {
     title: "Follow your request until your companion arrives",
-    lead: "A verified volunteer accepts your request. Follow its status step by step and contact them directly.",
-    panelTitle: "Every status in front of you",
-    panelText: "From “new” to “volunteer arrived”, and you message each other in the app.",
+    lead: "See every status, and contact your volunteer directly.",
     steps: [
       { label: "New", text: "You send your request." },
-      { label: "Accepted", text: "A verified volunteer accepts it, and it’s assigned to them." },
-      { label: "Volunteer arrived", text: "They reach the meeting point, and you message each other in the app." },
+      { label: "Accepted", text: "A verified volunteer accepts it, and you get their contact details, like their mobile number." },
+      { label: "Volunteer arrived", text: "They reach the meeting point." },
     ],
     arrived: "The volunteer has arrived",
-    pause: "Pause the track animation",
     screen: {
       src: "/screens/status-crop.png",
       w: 785,
@@ -106,11 +99,11 @@ export const en: Content = {
     title: "Who will go with you?",
     licence: "1053",
     items: [
-      { icon: "verified", title: "Identity verified through Nafath", text: "Every Rafiqi volunteer has verified their identity through Nafath." },
-      { icon: "chat", title: "Messaging after acceptance", text: "You chat with a volunteer once they accept your request." },
+      { icon: "verified", title: "Identity verified through Nafath", text: "Every volunteer is verified before they can accept a request." },
+      { icon: "chat", title: "Contact after acceptance", text: "Once they accept, you get their mobile number and can message them in the app." },
       {
         icon: "association",
-        title: "Provided by Liajlehum",
+        title: "By Liajlehum",
         text: "A charity registered with the Ministry of Human Resources and Social Development, licence no. 1053.",
       },
     ],
@@ -119,9 +112,9 @@ export const en: Content = {
     title: "Volunteer as a companion",
     lead: "Help someone with a disability get where they're going, at a time that suits you.",
     points: [
-      "Browse nearby requests, sorted by closest to you, newest or soonest.",
-      "Accept the one that suits you and it's assigned to you straight away.",
-      "Contact the requester and agree on the details.",
+      "Browse requests near you.",
+      "Accept one that suits you, and it's yours straight away.",
+      "Get the requester's contact details, like their mobile number, and plan the outing together.",
     ],
     hours: "Your volunteer hours count and show up in Absher.",
     screen: {
@@ -136,7 +129,7 @@ export const en: Content = {
     help: "Didn't find your answer? Call Liajlehum on",
     items: [
       { q: "Is the app free?", a: "Yes. Rafiqi is free on iPhone, iPad and Android." },
-      { q: "Who are the volunteers?", a: "People from the community, each with their identity verified through Nafath." },
+      { q: "Who are the volunteers?", a: "People from your community, each verified through Nafath." },
       {
         q: "What can I ask for help with?",
         a: "Walking, shopping, hospital visits, government offices, getting around, and other needs.",
@@ -151,7 +144,7 @@ export const en: Content = {
     qrHint: "Or scan with your phone's camera:",
     qrAppStore: "QR code that opens Rafiqi on the App Store",
     qrGooglePlay: "QR code that opens Rafiqi on Google Play",
-    text: "Your companion is on the way. Free on iPhone, iPad and Android.",
+    text: "Free on iPhone, iPad and Android.",
     screenAlt: "Rafiqi welcome screen: the Rafiqi logo above blue waves",
   },
   footer: {

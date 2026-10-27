@@ -168,19 +168,13 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
             </Shot>
           </div>
           {/* On a loop, the two of you set off from your points and meet at
-              the pin; a checkbox pauses it, without JavaScript. */}
+              the pin. */}
           <div className={s.mapStage}>
             <div className={s.mapCaption}>
               <h3>{t.way.panelTitle}</h3>
-              <p>{t.way.panelText}</p>
             </div>
             <div className={s.mapFrame}>
               <RouteMap />
-              <label className={s.pause}>
-                <input type="checkbox" aria-label={t.way.pause} />
-                <Icon name="pause" className={s.pauseIcon} />
-                <Icon name="play" className={s.playIcon} />
-              </label>
               {/* The place, popping up over the pin when the two of you
                   arrive; the meeting card below says it for screen readers. */}
               {t.help.items.map(({ icon, place }) => {
@@ -228,7 +222,6 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
           <div className={s.chapterCopy}>
             <h2 id="meet-title">{t.meet.title}</h2>
             <p className={s.lead}>{t.meet.lead}</p>
-            <h3>{t.meet.panelTitle}</h3>
             {/* The request's path; on a loop, the line fills step by step. */}
             <ol className={s.steps}>
               {t.meet.steps.map((step) => (
@@ -238,11 +231,6 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
                 </li>
               ))}
             </ol>
-            <label className={s.pause}>
-              <input type="checkbox" aria-label={t.meet.pause} />
-              <Icon name="pause" className={s.pauseIcon} />
-              <Icon name="play" className={s.playIcon} />
-            </label>
           </div>
           <div className={s.chapterMedia}>
             <p className={s.floatNote}>

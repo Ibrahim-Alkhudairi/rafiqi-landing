@@ -116,13 +116,6 @@ const paths = {
       <line x1="12" x2="12" y1="15" y2="3" />
     </>
   ),
-  pause: (
-    <>
-      <rect x="14" y="4" width="4" height="16" rx="1" />
-      <rect x="6" y="4" width="4" height="16" rx="1" />
-    </>
-  ),
-  play: <polygon points="6 3 20 12 6 21 6 3" />,
 };
 
 export type IconName = keyof typeof paths;

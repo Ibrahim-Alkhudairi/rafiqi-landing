@@ -305,36 +305,29 @@ test("the app's search, live: a suggestion picks the meeting place, and a pick i
   await expect(places.getByRole("radio", { name: /^Kingdom Tower/ })).toBeInViewport({ ratio: 0.9 });
 });
 
-test("map: the two of you travel to the pin on a loop, and it can be paused", async ({ page }) => {
+test("map: the two of you travel to the pin on a loop", async ({ page }) => {
   await page.goto("/en");
   const dot = page.locator("[data-trip='trip-shopping-you']"); // shopping is picked by default
-  const pause = page.getByRole("checkbox", { name: "Pause the map animation" });
   await expect(dot).toHaveCSS("animation-iteration-count", "infinite");
   await expect(dot).toHaveCSS("animation-play-state", "running");
-  await pause.check();
-  await expect(dot).toHaveCSS("animation-play-state", "paused");
   // Nothing waits on scrolling: the pin drops in with each loop, the card stays.
   await expect(page.locator("svg [data-tone='shopping'] g[class*='__pin']")).toHaveCSS("animation-iteration-count", "infinite");
   await expect(page.locator("[class*='__meetCard']")).toHaveCSS("opacity", "1");
-  // Reduced motion: no loop, so no pause control; the routes are drawn.
+  // Reduced motion: no loop; the routes are drawn.
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(dot).toHaveCSS("animation-name", "none");
-  await expect(pause).toBeHidden();
   await expect(page.locator("svg [data-tone='shopping'] [class*='__routeYou']")).toHaveCSS("stroke-dashoffset", "0px");
 });
 
-test("meeting track: the steps light in turn on a loop, and it can be paused", async ({ page }) => {
+test("meeting track: the steps light in turn on a loop", async ({ page }) => {
   await page.goto("/en");
   const pseudo = (n: number, which: "::before" | "::after", prop: string) =>
     page.locator(`[class*='__steps'] li:nth-child(${n})`).evaluate((el, [which, prop]) => getComputedStyle(el, which).getPropertyValue(prop), [which, prop]);
   expect(await pseudo(1, "::after", "animation-iteration-count")).toBe("infinite");
   expect(await pseudo(3, "::before", "animation-name")).toMatch(/stepDot3/);
-  await page.getByRole("checkbox", { name: "Pause the track animation" }).check();
-  expect(await pseudo(2, "::after", "animation-play-state")).toBe("paused");
-  // Reduced motion: the track is shown complete, with no loop to pause.
+  // Reduced motion: the track is shown complete, with no loop.
   await page.emulateMedia({ reducedMotion: "reduce" });
   expect(await pseudo(1, "::after", "animation-name")).toBe("none");
-  await expect(page.getByRole("checkbox", { name: "Pause the track animation" })).toBeHidden();
 });
 
 test("language switch: EN | AR (عربي on the Arabic page), the current one marked, and it switches", async ({ page }) => {

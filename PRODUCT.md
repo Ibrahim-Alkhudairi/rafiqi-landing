@@ -61,4 +61,6 @@ Companionship, not transport or care: a verified person from the community meets
 
 WCAG 2.2 AA with cheap AAA: body text at least 7:1, large text at least 4.5:1, targets at least 44px, plain language, no meaning by colour alone, reduced motion and large text respected, no overlay widget. Layout must reflow at 320px and at 200% text.
 
+Known exception (user decision, 2026-10-27): the meeting map and the request-status track loop with no pause control. This fails WCAG 2.2.2 (Pause, Stop, Hide); the user chose it knowingly over a play-once alternative. Reduced motion still shows both finished and still.
+
 The website itself serves two audiences, people with disabilities and volunteers, and must be fully accessible to both. Every part of the page, including the beneficiary path and the volunteer path, is held to the requirements above and reviewed against them.
