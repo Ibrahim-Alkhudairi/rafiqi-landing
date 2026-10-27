@@ -2,11 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 // Reduced motion shows every section at once, so axe checks the settled
-// page rather than a frame mid-fade.
-for (const lang of ["ar", "en"] as const) {
-  test(`/${lang}: no axe violations (WCAG 2.2 AA + AAA contrast)`, async ({ page }) => {
+// page rather than a frame mid-fade. /fr is the 404 page.
+for (const path of ["/ar", "/en", "/fr"]) {
+  test(`${path}: no axe violations (WCAG 2.2 AA + AAA contrast)`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(`/${lang}`);
+    await page.goto(path);
     const { violations } = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "wcag2aaa", "best-practice"])
       .analyze();
@@ -160,6 +160,9 @@ test("phones: Download stays in thumb reach once the hero badges scroll away", a
   await expect(cta).toBeVisible();
   const box = (await cta.boundingBox())!;
   expect(box.y + box.height).toBeGreaterThan(844 - 120);
+  // It steps aside for the download section, so it never covers its badges.
+  await page.evaluate(() => document.getElementById("download")!.scrollIntoView({ block: "end" }));
+  await expect(cta).toBeHidden();
   await expect(page.getByRole("link", { name: "920019904" }).first()).toHaveAttribute("href", "tel:920019904");
 });
 
@@ -179,6 +182,48 @@ test("phones: the burger opens the journey menu, and a pick or Escape closes it"
   await menu.getByRole("link", { name: "On the way" }).click();
   await expect(menu).toBeHidden();
   await expect(page).toHaveURL(/#way$/);
+});
+
+test("phones: the menu closes when focus leaves it, and Escape closes it wherever focus is", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en");
+  const burger = page.locator("summary[aria-label='Menu']");
+  const menu = page.getByRole("navigation", { name: "Menu" });
+  await burger.click();
+  await menu.getByRole("link", { name: "Download" }).focus();
+  await page.keyboard.press("Tab"); // out of the menu, into the page
+  await expect(menu).toBeHidden();
+  await burger.click();
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur()); // as a click on the panel's blank space does
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(burger).toBeFocused();
+});
+
+test("phones: the burger's panel stays on screen at 320px and at 200% text", async ({ page }) => {
+  const cdp = await page.context().newCDPSession(page);
+  for (const [width, font] of [[320, 16], [390, 32]]) {
+    await cdp.send("Page.setFontSizes", { fontSizes: { standard: font, fixed: font } });
+    await page.setViewportSize({ width, height: 844 });
+    for (const lang of ["ar", "en"]) {
+      await page.goto(`/${lang}`);
+      await page.locator("header summary").click();
+      const panel = (await page.locator("[class*='__menuPanel']").boundingBox())!;
+      expect(panel.x, `/${lang} ${width}px ${font}px`).toBeGreaterThanOrEqual(0);
+      expect(panel.x + panel.width, `/${lang} ${width}px ${font}px`).toBeLessThanOrEqual(width);
+    }
+  }
+});
+
+test("unknown URLs get the site's own 404, Arabic first, light, with a way back", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  for (const url of ["/fr", "/en/foo"]) {
+    const res = await page.goto(url);
+    expect(res?.status(), url).toBe(404);
+    await expect(page.locator("html")).toHaveAttribute("lang", "ar");
+    await expect(page.getByRole("link", { name: "الذهاب إلى رفيقي" })).toHaveAttribute("href", "/ar");
+    await expect(page.getByRole("link", { name: "Go to Rafiqi" })).toHaveAttribute("href", "/en");
+  }
 });
 
 test("hero story: the phone rises once the statement has faded, then the notifications arrive one by one", async ({ page }) => {

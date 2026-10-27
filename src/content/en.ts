@@ -25,7 +25,7 @@ export const en: Content = {
     ],
     phoneAlt: "Rafiqi home screen: the list of available requests sorted by closest to you; the first is a dental appointment 2.5 km away",
     notes: [
-      { icon: "check", title: "A volunteer accepted your request", text: "Dental appointment · 10:20 PM" },
+      { icon: "check", title: "A volunteer accepted your request", text: "Dental appointment · 10:12 PM" },
       { icon: "association", title: "New request near you", text: "2.5 km from you" },
       { icon: "pin", title: "Meeting point", text: "Dr. Sulaiman Al-Habib Hospital, Al Olaya" },
       { icon: "arrived", title: "The volunteer has arrived", text: "At the meeting point now" },
@@ -76,12 +76,12 @@ export const en: Content = {
       src: "/screens/map-crop.png",
       w: 784,
       h: 1048,
-      alt: "A search for “Al Habib hospital” with place suggestions, and a Riyadh map with the meeting pin and a use-my-location button",
+      alt: "The app's place search with suggestions, above a Riyadh map with the meeting pin and a use-my-location button",
     },
   },
   meet: {
     title: "Follow your request until your companion arrives",
-    lead: "See every status, and contact your volunteer directly.",
+    lead: "Know your request's status as it changes, and contact the volunteer directly.",
     steps: [
       { label: "New", text: "You send your request." },
       { label: "Accepted", text: "A verified volunteer accepts it, and you get their contact details, like their mobile number." },
@@ -92,7 +92,7 @@ export const en: Content = {
       src: "/screens/status-crop.png",
       w: 785,
       h: 468,
-      alt: "Request #481, a work meeting, with the status “volunteer arrived”, the requester, type, place and time",
+      alt: "Request #481, a work meeting, with the status “volunteer arrived”, a contact row for the requester, the request type and the meeting place",
     },
   },
   trust: {
@@ -110,13 +110,13 @@ export const en: Content = {
   },
   volunteers: {
     title: "Volunteer as a companion",
-    lead: "Help someone with a disability get where they're going, at a time that suits you.",
+    lead: "Help someone with a disability on their outing, at a time that suits you.",
     points: [
       "Browse requests near you.",
       "Accept one that suits you, and it's yours straight away.",
       "Get the requester's contact details, like their mobile number, and plan the outing together.",
     ],
-    hours: "Your volunteer hours count and show up in Absher.",
+    hours: "Your volunteer hours are counted with the National Center for Non-Profit Sector (NCNP).",
     screen: {
       src: "/screens/requests-crop.png",
       w: 804,
@@ -134,9 +134,9 @@ export const en: Content = {
         q: "What can I ask for help with?",
         a: "Walking, shopping, hospital visits, government offices, getting around, and other needs.",
       },
-      { q: "Which phones does it work on?", a: "iPhone and iPad with iOS 13 or later, and Android phones." },
+      { q: "Which devices does it work on?", a: "iPhone and iPad with iOS 13 or later, and Android phones." },
       { q: "How do I become a volunteer?", a: "Download the app, verify your identity through Nafath, then browse requests and accept one that suits you." },
-      { q: "Do volunteer hours count?", a: "Yes. Your volunteer hours count and show up in Absher." },
+      { q: "Do volunteer hours count?", a: "Yes. Your volunteer hours are counted with the National Center for Non-Profit Sector (NCNP)." },
     ],
   },
   close: {

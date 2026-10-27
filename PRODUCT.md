@@ -31,7 +31,7 @@ Companionship, not transport or care: a verified person from the community meets
 
 - Stack: Next.js 16 + React 19, CSS modules, Motion (`motion/react`), Playwright + axe tests. Local only, no deploy.
 - Arabic first (right-to-left) at `/ar`, English at `/en`; both languages written in full.
-- Volunteer hours: the user states they count and show up in Absher, and chose (2026-10-20) to state it on the page without a qualifier. No public source confirms this for Rafiqi specifically; it rests on the user's word.
+- Volunteer hours: the user states they are counted with the National Center for Non-Profit Sector (NCNP, المركز الوطني لتنمية القطاع غير الربحي), and chose (2026-10-27) to state that on the page without a qualifier, replacing the earlier claim (2026-10-20) that they show up in Absher. No public source confirms this for Rafiqi specifically; it rests on the user's word.
 
 ## Brand Commitments
 

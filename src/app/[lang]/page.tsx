@@ -104,11 +104,13 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
         </section>
 
         {/* The promise in one sentence; its words light up in reading order as
-            the page scrolls ("Manifesto" in the CSS). */}
+            the page scrolls ("Manifesto" in the CSS). Screen readers get it
+            whole, as some stop on every word span. */}
         <div className={s.manifesto}>
           <p>
+            <span className={s.srOnly}>{t.manifesto}</span>
             {t.manifesto.split(" ").map((word, i) => (
-              <span key={i} style={{ "--i": i } as CSSProperties}>
+              <span key={i} aria-hidden="true" style={{ "--i": i } as CSSProperties}>
                 {word}{" "}
               </span>
             ))}

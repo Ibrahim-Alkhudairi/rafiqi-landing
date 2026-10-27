@@ -34,7 +34,7 @@
   --bar-time: 0.65s; /* longer than the 300ms rule on purpose: the user asked for a slower, smoother shrink */
   --drop: 0.625rem; /* how far the pill glides down */
   --reach: 1.25rem; /* surface extends below the header to hold the dropped pill */
-  --lang-w: 94px; /* .langSwitch: two 44px links, padding and edge */
+  --lang-w: 5.875rem; /* .langSwitch: two 44px links, padding and edge; rem so it grows with its labels at large text */
   position: relative;
   display: flow-root; /* keeps the row's margins inside the header */
 }
@@ -227,16 +227,20 @@ html[dir="rtl"] .langSwitch {
 }
 
 /* Under 22.5em the bar doesn't pin, and room for the switch on both sides
-   would push the bar onto two rows: the switch joins the row instead. */
+   would push the bar onto two rows: the switch joins the row instead (and
+   wraps below it if even that doesn't fit). The bar is off-centre then, so
+   it stops being the menu panel's anchor: the header centres it. */
 @media (max-width: 22.49em) {
   .header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     column-gap: var(--space-2);
   }
 
   .bar {
+    position: static;
     max-width: none;
     margin-inline: 0;
   }
@@ -421,6 +425,7 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
   top: 0;
   left: 50%; /* physical on purpose: centring is the same in both directions */
   width: clamp(15rem, 24vw, 19rem);
+  max-width: 100%; /* 15rem is wider than a phone's stage at 200% text */
   transform: translateX(-50%);
   transform-style: preserve-3d;
 }
@@ -566,15 +571,13 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
   inset-inline-end: 0;
 }
 
-/* Wider screens: four notifications around the phone. */
+/* Wider screens: the notifications around the phone; two (one each side)
+   until 54em, where the room beside the phone gets tall enough for four. */
 @media (min-width: 48em) {
   .note {
-    width: min(21rem, 34%);
-  }
-
-  .note1,
-  .note2 {
-    display: block;
+    /* Never wider than the room beside the phone (the inner notes' offset
+       below), or the stage clips them at tablet widths. */
+    width: min(21rem, 34%, 50% - clamp(9.5rem, 15vw, 12rem));
   }
 
   .note0 {
@@ -597,6 +600,13 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
     top: 46%;
     inset-inline-end: auto;
     inset-inline-start: calc(50% + clamp(8.5rem, 13vw, 10.5rem));
+  }
+}
+
+@media (min-width: 54em) {
+  .note1,
+  .note2 {
+    display: block;
   }
 }
 
@@ -841,7 +851,7 @@ html[lang="ar"] .manifesto p {
 
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .manifesto span {
+    .manifesto span[aria-hidden] {
       animation: wordLight linear both;
       animation-timeline: --manifesto;
       animation-range: cover calc(33% + var(--i) * 1.6%) cover calc(39% + var(--i) * 1.6%);
@@ -883,8 +893,11 @@ html[lang="ar"] .manifesto p {
   min-width: 0;
 }
 
+/* minmax(0, 1fr), here and on .mapStage and .faqSection: an auto column
+   would grow to the widest word or chip at 200% text and get clipped. */
 .chapterCopy {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   gap: var(--space-4);
 }
@@ -975,6 +988,7 @@ html[lang="ar"] .manifesto p {
   align-items: center;
   gap: var(--space-2);
   min-height: 44px;
+  overflow-wrap: anywhere;
   padding-inline: var(--space-3) var(--space-4);
   border-radius: 999px;
   background: var(--surface);
@@ -1273,7 +1287,7 @@ html[lang="ar"] .manifesto p {
   grid-template-columns: 3.6cqi minmax(0, 1fr); /* pin, then text, from the right */
   align-items: center;
   column-gap: 5.1cqi;
-  height: 15.3cqi;
+  height: max(15.3cqi, 44px); /* the screenshot's row height, but never under a 44px target */
   padding-right: 5.1cqi;
   padding-left: 3cqi;
   border-bottom: 1px solid #e6e6e6;
@@ -1335,6 +1349,7 @@ html[lang="ar"] .manifesto p {
 .mapStage {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
@@ -1490,14 +1505,40 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   border-top-color: var(--ink);
 }
 
+/* Phones: the caption sits above the map, and the popup needs room between
+   them. Where the map is too small for it to clear the caption (narrow
+   screens, larger text; media-query em follow the text size), it's left
+   out: the meeting card right below names the place. */
+@media (max-width: 51.99rem) {
+  .mapFrame {
+    margin-block-start: var(--space-4);
+  }
+}
+
+@media (max-width: 23.99em) {
+  .meetPop {
+    display: none;
+  }
+}
+
+@media (min-width: 52rem) {
+  .meetPop {
+    padding: var(--space-2) var(--space-3);
+    border-radius: 12px;
+    font-size: var(--text-sm);
+  }
+}
+
 /* Wide screens: caption and meeting card float on the map. The map is a
    picture, so they sit by physical side: the caption in the empty top left,
-   the card 60% across and halfway down, right of every meeting point. */
-@media (min-width: 52rem) {
+   the card 60% across and halfway down, right of every meeting point. Only
+   from 80rem: on a narrower map the caption covers the left pins. */
+@media (min-width: 80rem) {
   .mapCaption {
     position: absolute;
     top: var(--space-5);
     left: var(--space-5);
+    z-index: 1; /* over the map frame, which comes after it */
     max-width: 17rem;
     padding: var(--space-4) var(--space-5);
     border-radius: 18px;
@@ -1508,16 +1549,6 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
     position: absolute;
     top: 56%;
     left: 60%;
-  }
-
-  .mapCaption {
-    z-index: 1; /* over the map frame, which comes after it */
-  }
-
-  .meetPop {
-    padding: var(--space-2) var(--space-3);
-    border-radius: 12px;
-    font-size: var(--text-sm);
   }
 }
 
@@ -1973,7 +2004,7 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   color: var(--brand);
 }
 
-/* "Hours count in Absher", the volunteer's reason, as its own statement. */
+/* "Hours are counted with the NCNP", the volunteer's reason, as its own statement. */
 .hours {
   display: flex;
   flex-wrap: wrap; /* the icon goes above the text when there's no room */
@@ -2001,6 +2032,7 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   width: var(--page);
   margin: clamp(5rem, 10vw, 8.5rem) auto 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
 }
 
@@ -2035,6 +2067,7 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  overflow-wrap: anywhere;
   min-height: 4rem;
   padding-block: var(--space-4);
   font-size: var(--text-lg);
@@ -2333,6 +2366,14 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   height: 1.25rem;
 }
 
+/* It floats over the navy hero and the white page alike: a white band
+   inside the blue ring shows on both. */
+.mobileCta:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--surface),
+    var(--shadow-float);
+}
+
 @media (min-height: 30em) {
   .mobileCta {
     display: flex;
@@ -2401,8 +2442,9 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   display: block;
 }
 
-/* Centred on the bar, which is always centred on the page. Not fixed: the
-   pill's transform would trap a fixed panel inside the bar. */
+/* Centred on the bar, which is centred on the page (under 22.5em, on the
+   header). Not fixed: the pill's transform would trap a fixed panel inside
+   the bar. */
 .menuPanel {
   position: absolute;
   top: calc(100% + var(--space-3));
@@ -2548,8 +2590,14 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
 /* Bold theme: the colour lives in the hero, the bar and the panels; the page
    between them is white. Text on the night navy is white (17:1) or #C9D3E8
    (11.4:1), icons the app's cyan; focus rings there turn yellow. */
-:is(.header, .hero, .trust, .close) :focus-visible {
+:is(.header, .hero, .trust, .close) :focus-visible,
+.skip:focus-visible {
   outline-color: var(--yellow);
+}
+
+/* The burger's panel is white: the page's blue ring again. */
+.menuPanel :focus-visible {
+  outline-color: var(--focus);
 }
 
 .hero {

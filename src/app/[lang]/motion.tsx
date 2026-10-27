@@ -137,35 +137,50 @@ export function PhaseNav({ t }: { t: Phases }) {
 // The burger menu (phones and tablets): the same journey links plus Download.
 // Built on <details>, so it opens without JavaScript and announces
 // expanded/collapsed; with JavaScript it also closes on a pick, on Escape
-// (focus back to the burger) and on a tap outside.
+// wherever focus is (focus back to the burger), on a tap outside, and when
+// focus moves out of it, so it never covers what has focus.
 export function MobileMenu({ t, label, download }: { t: Phases; label: string; download: string }) {
   const current = useCurrentPhase(t.items);
   const ref = useRef<HTMLDetailsElement>(null);
-  const close = (focusBurger = false) => {
-    const menu = ref.current;
-    if (!menu?.open) return;
-    menu.open = false;
-    if (focusBurger) menu.querySelector("summary")?.focus();
+  const close = () => {
+    if (ref.current) ref.current.open = false;
   };
 
   useEffect(() => {
+    const menu = ref.current;
+    if (!menu) return;
     const onDown = (e: PointerEvent) => {
-      const menu = ref.current;
-      if (menu?.open && !menu.contains(e.target as Node)) menu.open = false;
+      if (menu.open && !menu.contains(e.target as Node)) menu.open = false;
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || !menu.open) return;
+      menu.open = false;
+      menu.querySelector("summary")?.focus();
+    };
+    // Focus moving to the page; a click on the panel's blank space moves it
+    // to nowhere (relatedTarget null) and keeps the menu open.
+    const onFocusOut = (e: FocusEvent) => {
+      if (menu.open && e.relatedTarget instanceof Node && !menu.contains(e.relatedTarget)) menu.open = false;
     };
     document.addEventListener("pointerdown", onDown);
-    return () => document.removeEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    menu.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+      menu.removeEventListener("focusout", onFocusOut);
+    };
   }, []);
 
   return (
-    <details ref={ref} className={s.menu} onKeyDown={(e) => e.key === "Escape" && close(true)}>
+    <details ref={ref} className={s.menu}>
       <summary aria-label={label}>
         <Icon name="menu" className={s.menuIconOpen} />
         <Icon name="close" className={s.menuIconClose} />
       </summary>
       <nav className={s.menuPanel} aria-label={label}>
-        <PhaseLinks items={t.items} current={current} onPick={() => close()} />
-        <a className={s.menuDownload} href="#download" onClick={() => close()}>
+        <PhaseLinks items={t.items} current={current} onPick={close} />
+        <a className={s.menuDownload} href="#download" onClick={close}>
           <Icon name="download" />
           {download}
         </a>
@@ -242,15 +257,16 @@ export function PlaceSearch({
 }
 
 // Phones: a Download button in thumb reach, shown once the hero's own store
-// badges have scrolled away and hidden again at the bottom, where the
-// download section is. Hidden means visibility: hidden, so it can't be tabbed to.
+// badges have scrolled away and hidden again from the moment the download
+// section comes on screen, so it never covers that section's own badges.
+// Hidden means visibility: hidden, so it can't be tabbed to.
 export function MobileCta({ label }: { label: string }) {
   const [shown, setShown] = useState(false);
   useEffect(() => {
+    const download = document.getElementById("download");
     const onScroll = () => {
-      const y = window.scrollY;
-      const atBottom = y + window.innerHeight >= document.documentElement.scrollHeight - 24;
-      setShown(y > window.innerHeight * 0.8 && !atBottom);
+      const reached = (download?.getBoundingClientRect().top ?? Infinity) < window.innerHeight;
+      setShown(window.scrollY > window.innerHeight * 0.8 && !reached);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });

@@ -1,0 +1,52 @@
+/* The 404 page: the site's navy band, both languages one above the other. */
+.page {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  background: var(--hero);
+  color: var(--on-hero);
+}
+
+.main {
+  width: min(100% - 2rem, 32rem);
+  display: grid;
+  gap: var(--space-12);
+  padding-block: var(--space-12);
+  text-align: center;
+}
+
+.part {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+}
+
+.part :is(h1, h2) {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+}
+
+.part p {
+  color: var(--on-hero-soft);
+}
+
+.part + .part {
+  padding-block-start: var(--space-12);
+  border-block-start: 1px solid rgb(255 255 255 / 0.2);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--space-6);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--link);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button:focus-visible {
+  outline-color: var(--yellow);
+}
