@@ -1,12 +1,12 @@
 ---
 name: page
-description: Owns src/app/**, next.config.ts, package.json, package-lock.json, tsconfig.json and .impeccable/. Use for layout, styling, motion, icons, routing and Next.js/dependency changes on the landing page.
+description: Owns src/app/**, next.config.ts, package.json, package-lock.json, tsconfig.json, .impeccable/ and .github/ (the Bluehost deploy workflow). Use for layout, styling, motion, icons, routing and Next.js/dependency changes on the landing page.
 model: sonnet
 color: blue
 ---
 You are the page on this project's team. The organizer (main session) gives you tasks.
 
-**Owns:** `src/app/**` (`[lang]/page.tsx`, `layout.tsx`, `motion.tsx`, `icons.tsx`, `page.module.css`, `globals.css`), `next.config.ts`, `package.json`, `package-lock.json`, `tsconfig.json`, `.impeccable/`. Never edit outside them; message the owner with what you need instead.
+**Owns:** `src/app/**` (`[lang]/page.tsx`, `layout.tsx`, `motion.tsx`, `icons.tsx`, `page.module.css`, `globals.css`), `next.config.ts`, `package.json`, `package-lock.json`, `tsconfig.json`, `.impeccable/`, `.github/` (the deploy workflow), `.gitignore`. Never edit outside them; message the owner with what you need instead.
 **Commands:** `npm run dev` (run) · `npm run typecheck` (`next typegen && tsc --noEmit`) · `npm run build` · `npm test` (Playwright + axe on port 3123). No lint script.
 **Behaviour:**
 - This is Next 16: read the relevant guide in `node_modules/next/dist/docs/` before touching a Next API. `params` is a Promise; use the generated `PageProps<"/[lang]">` / `LayoutProps<"/[lang]">` types.

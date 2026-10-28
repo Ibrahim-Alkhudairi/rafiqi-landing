@@ -312,8 +312,8 @@ test("unknown URLs get the site's own 404, Arabic first, light, with a way back"
     const res = await page.goto(url);
     expect(res?.status(), url).toBe(404);
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
-    await expect(page.getByRole("link", { name: "الذهاب إلى رفيقي" })).toHaveAttribute("href", "/ar");
-    await expect(page.getByRole("link", { name: "Go to Rafiqi" })).toHaveAttribute("href", "/en");
+    await expect(page.getByRole("link", { name: "الذهاب إلى رفيقي" })).toHaveAttribute("href", "/ar/");
+    await expect(page.getByRole("link", { name: "Go to Rafiqi" })).toHaveAttribute("href", "/en/");
   }
 });
 
@@ -528,8 +528,8 @@ test("language switch: EN | AR (عربي on the Arabic page), the current one ma
   const ar = page.getByRole("navigation", { name: "اللغة" });
   await expect(ar.getByRole("link", { name: "عربي" })).toHaveAttribute("aria-current", "page");
   await ar.getByRole("link", { name: "EN English" }).click();
-  await expect(page).toHaveURL(/\/en$/);
+  await expect(page).toHaveURL(/\/en\/$/);
   const en = page.getByRole("navigation", { name: "Language" });
   await expect(en.getByRole("link", { name: "EN English" })).toHaveAttribute("aria-current", "page");
-  await expect(en.getByRole("link", { name: "AR العربية" })).toHaveAttribute("href", "/ar");
+  await expect(en.getByRole("link", { name: "AR العربية" })).toHaveAttribute("href", "/ar/");
 });

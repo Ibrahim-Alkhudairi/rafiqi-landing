@@ -13,7 +13,7 @@ web
 
 ## Product Purpose
 
-Rafiqi (رفيقي), an app by Liajlehum Association for Disability, connects a person with a disability to a volunteer whose identity is verified through Nafath. The beneficiary describes the request (type of help, date, start and end time, details) and drops a meeting point on a map; a volunteer accepts, the request is assigned to them directly, and the two message each other in the app. This page is a local demo of an advertising landing page: success is a visitor understanding what the app does within seconds and downloading it (App Store / Google Play), with volunteers finding their own path.
+Rafiqi (رفيقي), an app by Liajlehum Association for Disability, connects a person with a disability to a volunteer whose identity is verified through Nafath. The beneficiary describes the request (type of help, date, start and end time, details) and drops a meeting point on a map; a volunteer accepts, the request is assigned to them directly, and the two message each other in the app. This is Rafiqi's live landing page (an advertising page): success is a visitor understanding what the app does within seconds and downloading it (App Store / Google Play), with volunteers finding their own path.
 
 ## Positioning
 
@@ -29,7 +29,7 @@ Companionship, not transport or care: a verified person from the community meets
 
 ## Capabilities and Constraints
 
-- Stack: Next.js 16 + React 19, CSS modules, Motion (`motion/react`), Playwright + axe tests. Local only, no deploy.
+- Stack: Next.js 16 + React 19, CSS modules, Motion (`motion/react`), Playwright + axe tests. Static export deployed to https://rafiqi.sa on Bluehost by GitHub Actions on every push to `main`, the same as join.rafiqi.sa.
 - Arabic first (right-to-left) at `/ar`, English at `/en`; both languages written in full.
 - Volunteer hours: the user states they are counted with the National Center for Non-Profit Sector (NCNP, المركز الوطني لتنمية القطاع غير الربحي), and chose (2026-10-27) to state that on the page without a qualifier, replacing the earlier claim (2026-10-20) that they show up in Absher. No public source confirms this for Rafiqi specifically; it rests on the user's word.
 
@@ -40,7 +40,7 @@ Companionship, not transport or care: a verified person from the community meets
 - The app's own colours (binding): primary blue #2788EA, lavender tints #FDF8FE / #F6F1F8, yellow status pill #FDEFBE, and the per-category colours (walking #FA541D, shopping #9420A8, hospital #F94A48, ministries #F9BC09, transport #019380, other #FC561E). Text-bearing blues may be deepened for contrast.
 - Real app screens (binding): the welcome screen plus the request form, map picker, request status and request list screens in `public/screens/`.
 - The route-and-meeting-pin idea (binding): two people's routes meeting at a point.
-- "Concept — not affiliated with Liajlehum" stays visible.
+- rafiqi.sa is Rafiqi's official site (user decision): no concept or "not affiliated with Liajlehum" notice.
 - Standing preference (user, 2026-10-20): minimalist and product-first, in the manner of flighty.com. The user rejected a generic SaaS card layout and a chat-thread concept as "AI sloppy" / "terrible".
 
 ## Evidence on Hand

@@ -2266,16 +2266,6 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   color: var(--muted);
 }
 
-.systemNote {
-  max-width: 40rem;
-  padding: var(--space-2) var(--space-4);
-  border-radius: 12px;
-  background: var(--pill);
-  color: var(--on-pill);
-  font-size: var(--text-base);
-  font-weight: 600;
-}
-
 .footerLinks {
   list-style: none;
   margin: 0;

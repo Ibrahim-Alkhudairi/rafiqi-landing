@@ -22,7 +22,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
 
       <Header className={s.header} after="hero">
         <div className={s.bar}>
-          <a className={s.brand} href={`/${lang}`}>
+          <a className={s.brand} href={`/${lang}/`}>
             <Image src="/icon.png" alt="" width={40} height={40} loading="eager" />
             <span className={s.brandText}>
               <span lang="ar">رفيقي</span> <span lang="en">Rafiqi</span>
@@ -42,7 +42,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
             also named in full, in its own language, for screen readers. */}
         <nav className={s.langSwitch} aria-label={t.language}>
           {t.languages.map((l) => (
-            <a key={l.lang} href={`/${l.lang}`} hrefLang={l.lang} aria-current={l.lang === lang ? "page" : undefined}>
+            <a key={l.lang} href={`/${l.lang}/`} hrefLang={l.lang} aria-current={l.lang === lang ? "page" : undefined}>
               {l.label}
               {l.name && (
                 <span className={s.srOnly} lang={l.lang}>
@@ -369,7 +369,6 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
 
       <footer className={s.footer}>
         <div className={s.footerInner}>
-          <p className={s.systemNote}>{t.footer.concept}</p>
           <nav aria-label={t.footer.label}>
             <ul className={s.footerLinks}>
               <li>

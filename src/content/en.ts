@@ -362,7 +362,6 @@ export const en: Content = {
     phone: "920019904",
     by: "The Rafiqi app is made by Liajlehum Association for Disability.",
     association: "Liajlehum website",
-    concept: "This is a concept page. It is not affiliated with Liajlehum Association.",
     privacy: "Privacy policy",
   },
 };

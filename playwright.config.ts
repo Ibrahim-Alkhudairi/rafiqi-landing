@@ -5,8 +5,8 @@ export default defineConfig({
   use: { baseURL: "http://localhost:3123" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "npm run build && npx next start -p 3123",
-    url: "http://localhost:3123/ar",
+    command: "npm run build && node tests/serve-out.mjs",
+    url: "http://localhost:3123/ar/",
     reuseExistingServer: true,
     timeout: 180_000,
   },

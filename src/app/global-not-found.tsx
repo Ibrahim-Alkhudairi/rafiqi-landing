@@ -24,14 +24,14 @@ export default function GlobalNotFound() {
           <section className={s.part}>
             <h1>الصفحة غير موجودة</h1>
             <p>ربما تغيّر الرابط أو كُتب خطأً.</p>
-            <a className={s.button} href="/ar">
+            <a className={s.button} href="/ar/">
               الذهاب إلى رفيقي
             </a>
           </section>
           <section className={s.part} lang="en" dir="ltr">
             <h2>Page not found</h2>
             <p>The link may have changed or been mistyped.</p>
-            <a className={s.button} href="/en">
+            <a className={s.button} href="/en/">
               Go to Rafiqi
             </a>
           </section>

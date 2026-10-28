@@ -10,7 +10,7 @@ You are the organizer. Roles live in `.claude/agents/`.
 
 | Role | Owns | Talks to |
 |------|------|----------|
-| page | `src/app/**`, `next.config.ts`, `package.json`, `package-lock.json`, `tsconfig.json`, `.impeccable/` | content, tests |
+| page | `src/app/**`, `next.config.ts`, `package.json`, `package-lock.json`, `tsconfig.json`, `.impeccable/`, `.github/`, `.gitignore` | content, tests |
 | content | `src/content/**`, `public/**`, `PRODUCT.md` | page, tests |
 | tests | `tests/**`, `playwright.config.ts` | page, content |
 | reviewer | read-only | organizer |
