@@ -134,7 +134,7 @@ export const en: Content = {
       },
       {
         q: "Is it free?",
-        a: "Yes. Rafiqi is free on iPhone, iPad and Android, and every service inside it is free of charge. Outside costs tied to the activity itself, such as an entry ticket or parking, aren't automatically covered unless the event organiser or the person you're helping says otherwise.",
+        a: "Yes. Rafiqi is free on iPhone, iPad and Android, and every service inside it is free of charge. Outside costs tied to the activity itself, such as an entry ticket or parking, aren't automatically included in the service unless the event's organisers or the person who made the request say otherwise.",
       },
       {
         q: "How do I know a volunteer is verified?",
@@ -146,11 +146,11 @@ export const en: Content = {
       },
       {
         q: "Can I use the app in any city?",
-        a: "You can set a request's location on the map in any city or area the map covers, inside or outside the Kingdom. But a request is only accepted if volunteers are nearby and available, so response times can differ from one area to another.",
+        a: "You can set a request's location on the map in any city or area the map covers, inside or outside Saudi Arabia. But a request is only accepted if volunteers are nearby and available, so response times can differ from one area to another.",
       },
       {
         q: "What happens after I send a request?",
-        a: "The request starts as \"New\" and stays visible to volunteers while it's still valid. When the first volunteer taps accept, it's assigned to them straight away, the status changes to \"Volunteer assigned\", and it disappears from the public list. There is no step where a volunteer waits for manual approval.",
+        a: "The request starts as \"New\" and stays visible to volunteers while it's still valid. When the first volunteer taps accept, it's assigned to them straight away, the status changes to \"Volunteer assigned\", and it disappears from the public list. In the current flow, there's no step where a volunteer waits for manual approval.",
       },
       {
         q: "How do I get started as a volunteer?",
@@ -167,7 +167,7 @@ export const en: Content = {
             items: [
               {
                 q: "What types of accounts are there?",
-                a: "There are two main paths: an account for people with disabilities, to create and follow requests for accompaniment, and an account for volunteers, to browse and accept the available requests. The home page and the options change with the account type you pick, so choose the one that matches your real role and complete the details it asks for.",
+                a: "There are two main paths: an account for people with disabilities, to create and follow requests for accompaniment, and an account for volunteers, to browse and accept the available requests. The home page and the options change with the account type you pick, so choose the one that matches your actual role and complete the details it asks for.",
               },
               { q: "Which languages does the app support?", a: "Arabic and English. You can change the language from the account page." },
               { q: "Which devices does it work on?", a: "iPhone and iPad with iOS 13 or later, and Android phones." },
@@ -181,7 +181,7 @@ export const en: Content = {
                 a: "Your personal data is visible only to you, except your phone number and first name once a request is accepted.",
               },
               {
-                q: "When do contact details appear between the two sides?",
+                q: "When do the requester and the volunteer see each other's contact details?",
                 a: "Once a volunteer accepts the request and its status becomes \"Volunteer assigned\", the requester sees an option to contact the volunteer, and the volunteer sees an option to contact the requester.",
               },
             ],
@@ -234,7 +234,7 @@ export const en: Content = {
               },
               {
                 q: "What if I deny location permission?",
-                a: "You can still choose the request location by searching or moving the map by hand, but the \"My location\" button and some distance features won't work accurately without permission. To turn them on later, open your device settings and allow Rafiqi to access your location while you use the app.",
+                a: "You can still choose the request location by searching or moving the map by hand, but the \"My current location\" button and some distance features won't work accurately without permission. To turn them on later, open your device settings and allow Rafiqi to access your location while you use the app.",
               },
               {
                 q: "Why might a short place name differ from the full address?",
@@ -259,7 +259,7 @@ export const en: Content = {
               },
               {
                 q: "Can I contact the volunteer before they arrive?",
-                a: "Yes, but only after the request is assigned. The request card shows an option to call the volunteer, and the volunteer sees an option to contact the requester, using the requester's first name.",
+                a: "Yes, but only after the request is assigned. The request card shows an option to call the volunteer, and the volunteer sees a \"Contact the requester\" option with the requester's first name.",
               },
               {
                 q: "Can I see the status of my request?",
@@ -306,7 +306,7 @@ export const en: Content = {
                 a: "By \"Soonest\". It starts with the request whose start time is closest to the current time within the same day.",
               },
               {
-                q: "How does \"Nearest to you\" work?",
+                q: "How does \"Closest to you\" work?",
                 a: "When you allow the app to access your location, it calculates the distance between where you are and each request's coordinates, then sorts the requests from nearest to farthest. The distance appears on the request card in kilometres.",
               },
               {
