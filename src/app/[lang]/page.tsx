@@ -299,11 +299,40 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
             </p>
           </div>
           <div className={s.faq}>
-            {t.faq.items.map((item) => (
-              <details key={item.q} className={s.qa}>
-                <summary>{item.q}</summary>
-                <p>{item.a}</p>
-              </details>
+            <div className={s.faqTopics} role="radiogroup" aria-labelledby="faq-title">
+              <label>
+                <input type="radio" name="faq" value="top" defaultChecked />
+                {t.faq.top}
+              </label>
+              {t.faq.topics.map((topic, i) => (
+                <label key={topic.title}>
+                  <input type="radio" name="faq" value={i} />
+                  {topic.title}
+                </label>
+              ))}
+            </div>
+            <div className={s.faqPanel} data-panel="top">
+              {t.faq.items.map((item) => (
+                <details key={item.q} className={s.qa}>
+                  <summary>{item.q}</summary>
+                  <p>{item.a}</p>
+                </details>
+              ))}
+            </div>
+            {t.faq.topics.map((topic, i) => (
+              <div key={topic.title} className={s.faqPanel} data-panel={i}>
+                {topic.groups.map((group) => (
+                  <div key={group.title} className={s.faqGroup}>
+                    <h3>{group.title}</h3>
+                    {group.items.map((item) => (
+                      <details key={item.q} className={s.qa}>
+                        <summary>{item.q}</summary>
+                        <p>{item.a}</p>
+                      </details>
+                    ))}
+                  </div>
+                ))}
+              </div>
             ))}
           </div>
         </section>

@@ -23,7 +23,9 @@
 /* Header: one row of items, centred, that never changes layout. Behind it, a
    single lavender surface: at the top a full-width band, and once the page
    scrolls it shrinks (clip-path) into the pill around the same row, which
-   glides down a little. Nothing animates layout, so the browser never
+   glides down a little. Only that shrink is animated: going back up it
+   snaps to the band (navy on navy under the hero, so unseen), so a fast
+   scroll to the top never arrives with the band half-grown. Nothing animates layout, so the browser never
    re-lays out the bar mid-transition (no stutter) and the page never jumps.
    --pill-x (the pill's side inset) is measured by <Header> in motion.tsx.
    Pinned only while it fits on one row and the screen has height to spare;
@@ -46,7 +48,6 @@
   inset: 0 0 calc(var(--reach) * -1) 0;
   background: var(--hero);
   clip-path: inset(0 0 var(--reach) 0 round 0);
-  transition: clip-path var(--bar-time) var(--bar-ease);
 }
 
 /* The band's bottom hairline. */
@@ -57,7 +58,6 @@
   bottom: 0;
   height: 1px;
   background: var(--line);
-  transition: opacity calc(var(--bar-time) * 0.4) var(--bar-ease);
 }
 
 .bar {
@@ -75,7 +75,6 @@
   justify-content: center;
   gap: var(--space-2); /* tight on phones so the pill stays one row */
   border-radius: 999px;
-  transition: transform var(--bar-time) var(--bar-ease);
 }
 
 @media (min-width: 48em) {
@@ -95,7 +94,6 @@
   border-radius: inherit;
   box-shadow: var(--shadow-float);
   opacity: 0;
-  transition: opacity calc(var(--bar-time) * 0.35) ease;
 }
 
 @media (min-width: 22.5em) and (min-height: 30em) {
@@ -112,23 +110,27 @@
       calc(0.5rem + var(--drop)) var(--pill-x, 20%) calc(var(--reach) + 0.5rem - var(--drop))
         var(--pill-x, 20%) round 1.75rem /* half the pill's 3.5rem height */
     );
+    transition: clip-path var(--bar-time) var(--bar-ease);
   }
 
   .header[data-scrolled]::after {
     opacity: 0;
+    transition: opacity calc(var(--bar-time) * 0.4) var(--bar-ease);
   }
 
   .header[data-scrolled] .bar {
     transform: translateY(var(--drop));
+    transition: transform var(--bar-time) var(--bar-ease);
   }
 
   .header[data-scrolled] .langSwitch {
     translate: 0 var(--drop);
+    transition: translate var(--bar-time) var(--bar-ease);
   }
 
   .header[data-scrolled] .bar::before {
     opacity: 1;
-    transition-delay: calc(var(--bar-time) * 0.55);
+    transition: opacity calc(var(--bar-time) * 0.35) ease calc(var(--bar-time) * 0.55);
   }
 }
 
@@ -192,7 +194,6 @@
   border-radius: 999px;
   background: var(--hero);
   box-shadow: var(--shadow-float);
-  transition: translate var(--bar-time) var(--bar-ease);
 }
 
 /* EN on the left on the Arabic page too. */
@@ -610,15 +611,17 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
   }
 }
 
-/* The hero story, scroll-driven in CSS alone (no JavaScript needed). The
-   stage pins from the start, under the statement; as the page scrolls, the
-   statement scrolls away and fades, then the phone rises into place from
-   the bottom, and the four notifications arrive one by one, each tied to
-   its own stretch of scroll. The navy runs the whole way: .story is
-   part of the hero. It plays only where the browser drives animations by
-   scroll, motion is welcome, and the screen has the height for it
-   (media-query em follow the browser's text size, so 200% text gets the
-   static hero above instead). Keep the heights in sync with --header-h. */
+/* The hero story. The stage pins from the start, under the statement; as
+   the page scrolls, the statement scrolls away and fades, then the phone
+   rises into place from the bottom and the four notifications arrive one by
+   one. The statement and notifications are scroll-driven in CSS alone; the
+   phone's rise is timed, started by <HeroPhone> once the statement has
+   faded, and falls back to a scroll-linked rise before JavaScript runs or
+   without it. The navy runs the whole way: .story is part of the hero. It
+   plays only where the browser drives animations by scroll, motion is
+   welcome, and the screen has the height for it (media-query em follow the
+   browser's text size, so 200% text gets the static hero above instead).
+   Keep the heights in sync with --header-h. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) and (min-width: 22.5em) and (min-height: 36em) {
     /* One screen plus the scroll distance the story plays over. Text and
@@ -684,6 +687,24 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
       animation-range: contain var(--text-out) contain calc(var(--text-out) + 40svh);
     }
 
+    /* The phone comes up in one go the moment the statement has faded, no
+       more scrolling needed. <HeroPhone> sets data-rise once it runs; until
+       then (or without JavaScript) it rises with the scroll instead. Its
+       exit is timed too, so it also fades with the statement's return, or a
+       fast scroll up would leave it sliding down over the headline. */
+    .phone[data-rise] {
+      animation-name: phoneShow;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --story;
+      animation-range: contain 0% contain var(--text-out);
+      transition: translate 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .phone[data-rise="down"] {
+      translate: 0 100cqh;
+    }
+
     .note {
       animation: noteIn linear both;
       animation-timeline: --story;
@@ -727,18 +748,6 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
       .note1,
       .note2 {
         display: block;
-      }
-
-      /* The phone comes up in one go the moment the statement has faded,
-         no more scrolling needed. <HeroPhone> sets data-rise once it runs;
-         until then (or without JavaScript) it rises with the scroll. */
-      .phone[data-rise] {
-        animation: none;
-        transition: translate 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
-      .phone[data-rise="down"] {
-        translate: 0 100cqh;
       }
 
       .note0 {
@@ -808,6 +817,14 @@ html[lang="ar"] :is(.chapter, .trust, .faqSection, .close) h2 {
 @keyframes phoneRise {
   from {
     translate: 0 100cqh;
+  }
+}
+
+/* Faded in by the time the statement is gone, while the phone is still below
+   the stage. */
+@keyframes phoneShow {
+  from {
+    opacity: 0;
   }
 }
 
@@ -2054,10 +2071,6 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   }
 }
 
-.faq {
-  border-block-start: 1px solid var(--line);
-}
-
 .qa {
   border-block-end: 1px solid var(--line);
 }
@@ -2072,6 +2085,7 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   padding-block: var(--space-4);
   font-size: var(--text-lg);
   font-weight: 600;
+  overflow-wrap: anywhere; /* 200% text */
   list-style: none;
   cursor: pointer;
 }
@@ -2119,6 +2133,88 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   .qa[open]::details-content {
     block-size: auto;
   }
+}
+
+/* Topics: a row of pills, each a native radio, picks the list of questions
+   below it. CSS only, so it works without JavaScript; the lists not picked
+   are display: none, out of the tab order too. */
+.faqTopics {
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.faqTopics label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--space-4);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--muted);
+  font-size: var(--text-base);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.faqTopics input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.faqTopics label:has(:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.faqTopics label:has(:checked) {
+  background: var(--link); /* 7:1+ with white text */
+  box-shadow: none;
+  color: var(--on-action);
+}
+
+@media (hover: hover) {
+  .faqTopics label:not(:has(:checked)):hover {
+    background: var(--cyan-tint);
+  }
+}
+
+.faqPanel {
+  display: none;
+  border-block-start: 1px solid var(--line);
+}
+
+/* ponytail: one rule per pill; add a line when a topic is added. */
+.faq:has([value="top"]:checked) [data-panel="top"],
+.faq:has([value="0"]:checked) [data-panel="0"],
+.faq:has([value="1"]:checked) [data-panel="1"],
+.faq:has([value="2"]:checked) [data-panel="2"] {
+  display: block;
+}
+
+.faqGroup {
+  margin-block-start: var(--space-10);
+}
+
+.faqGroup:first-child {
+  margin-block-start: var(--space-6);
+}
+
+/* A level above the questions: bigger, bold, with a brand bar at the start. */
+.faqGroup h3 {
+  margin-block-end: var(--space-1);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 4px solid var(--brand);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 /* Closing: a full-width navy band like the hero, bookending the page, with

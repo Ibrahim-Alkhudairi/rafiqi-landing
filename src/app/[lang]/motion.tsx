@@ -282,8 +282,8 @@ export function MobileCta({ label }: { label: string }) {
 
 // The hero phone, in 3D. It rests straight; a nearby pointer (mouse and
 // trackpad only) tilts it a little, so its edge shows. Its rise in the
-// pinned hero is CSS ("The hero story" in page.module.css). Reduced motion:
-// straight, no movement.
+// pinned hero is CSS, timed once the statement has faded ("The hero story"
+// in page.module.css). Reduced motion: straight, no movement.
 const rest = { rotateX: 0, rotateY: 0 };
 
 export function HeroPhone({ className, after, children }: { className: string; after: string; children: ReactNode }) {
@@ -291,24 +291,25 @@ export function HeroPhone({ className, after, children }: { className: string; a
   const reduce = useReduced();
   const [rise, setRise] = useState<"down" | "up">();
 
-  // Up once the statement (id `after`) has fully faded, down while any of it
-  // shows. On phones the CSS plays the rise in one go off this, instead of
-  // over a stretch of scroll; elsewhere it's unused.
+  // Up once the page has scrolled past the statement's fade (--text-out, read
+  // from the CSS through a probe; not its opacity, which focus holds at 1),
+  // down before. The CSS plays the rise in one go off this, instead of over a
+  // stretch of scroll.
   useEffect(() => {
-    const text = document.getElementById(after);
-    if (!text) return;
-    // Read a frame later: during the scroll event the fade hasn't caught up
-    // with the scroll yet, and stopping right where it ends would read 0.001.
-    let frame = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setRise(getComputedStyle(text).opacity === "0" ? "up" : "down"));
-    };
+    const story = document.getElementById(after)?.parentElement;
+    if (!story) return;
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;visibility:hidden;width:var(--header-h);height:var(--text-out)";
+    story.append(probe);
+    const onScroll = () =>
+      setRise(story.getBoundingClientRect().top <= probe.offsetWidth - probe.offsetHeight ? "up" : "down");
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     return () => {
-      cancelAnimationFrame(frame);
+      probe.remove();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     };
   }, [after]);
   const tiltX = useMotionValue(rest.rotateX);

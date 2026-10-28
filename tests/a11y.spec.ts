@@ -14,6 +14,91 @@ for (const path of ["/ar", "/en", "/fr"]) {
   });
 }
 
+const faq = "section[aria-labelledby='faq-title']";
+// Pill i: 0 is "Most asked", then the three topics. Counts are what the content has.
+const panels = [
+  { key: "top", groups: 0, questions: 7 },
+  { key: "0", groups: 3, questions: 6 },
+  { key: "1", groups: 3, questions: 15 },
+  { key: "2", groups: 3, questions: 13 },
+];
+const faqPills = (page: import("@playwright/test").Page) =>
+  page.getByRole("radiogroup", { name: /Common questions|أسئلة شائعة/ }).getByRole("radio");
+const openPanelQuestions = (page: import("@playwright/test").Page, key: string) =>
+  page.evaluate(
+    ([sel, key]) => document.querySelectorAll(`${sel} [data-panel='${key}'] details`).forEach((d) => ((d as HTMLDetailsElement).open = true)),
+    [faq, key],
+  );
+
+for (const lang of ["ar", "en"] as const) {
+  test(`/${lang} FAQ: the most asked come first, and each pill swaps in its own questions`, async ({ page }) => {
+    await page.goto(`/${lang}`);
+    const pills = faqPills(page);
+    await expect(pills).toHaveCount(4);
+    await expect(pills.first()).toBeChecked();
+    await expect(pills.first()).toHaveAccessibleName(lang === "ar" ? "الأكثر سؤالًا" : "Most asked");
+    const panel = (key: string) => page.locator(`${faq} [data-panel='${key}']`);
+    for (const [i, { key, groups, questions }] of panels.entries()) {
+      await pills.nth(i).click();
+      await expect(pills.nth(i)).toBeChecked();
+      for (const other of panels) {
+        if (other.key === key) await expect(panel(key)).toBeVisible();
+        else await expect(panel(other.key)).toBeHidden();
+      }
+      await expect(panel(key).locator("[class*='__qa']")).toHaveCount(questions);
+      await expect(panel(key).locator("h3")).toHaveCount(groups);
+    }
+    // Arrow keys move the pick, as in any radio group.
+    await pills.first().click();
+    await pills.first().press("ArrowDown");
+    await expect(pills.nth(1)).toBeChecked();
+    await expect(panel("0")).toBeVisible();
+    await expect(panel("top")).toBeHidden();
+    const question = panel("0").locator("[class*='__qa']").first();
+    await expect(question.locator("> p")).toBeHidden();
+    await question.locator("> summary").click();
+    await expect(question.locator("> p")).toBeVisible();
+  });
+
+  test(`/${lang} FAQ with every question of each pill open: no axe violations`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${lang}`);
+    for (const [i, { key }] of panels.entries()) {
+      await faqPills(page).nth(i).click();
+      await openPanelQuestions(page, key);
+      const { violations } = await new AxeBuilder({ page })
+        .include(faq)
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "wcag2aaa", "best-practice"])
+        .analyze();
+      expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(" | ")}`), `pill ${key}`).toEqual([]);
+    }
+  });
+}
+
+test("FAQ with every question of each pill open: no sideways scroll at 320px and at 200% text", async ({ page }) => {
+  const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const cdp = await page.context().newCDPSession(page);
+  const checkEachPill = async (label: string) => {
+    for (const [i, { key }] of panels.entries()) {
+      await faqPills(page).nth(i).click();
+      await openPanelQuestions(page, key);
+      expect(await overflow(), `${label}, pill ${key}`).toBe(0);
+    }
+  };
+  for (const lang of ["ar", "en"]) {
+    await cdp.send("Page.setFontSizes", { fontSizes: { standard: 16, fixed: 13 } });
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto(`/${lang}`);
+    await checkEachPill(`/${lang} at 320px`);
+    // The browser's text-size setting, as in the 200% spec above.
+    await cdp.send("Page.setFontSizes", { fontSizes: { standard: 32, fixed: 26 } });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/${lang}`);
+    await expect(page.locator("html")).toHaveCSS("font-size", "32px");
+    await checkEachPill(`/${lang} at 200% text`);
+  }
+});
+
 test("light only: a dark system setting still gets the app's light theme", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/ar");
@@ -146,6 +231,12 @@ test("no JavaScript: no section is left hidden", async ({ browser }) => {
   for (const section of await page.locator("main section").all()) {
     await expect(section).toHaveCSS("opacity", "1");
   }
+  // The FAQ pills are plain radios: picking one swaps the panel, no script.
+  await expect(page.locator(`${faq} input[name='faq'][value='top']`)).toBeChecked();
+  await expect(page.locator(`${faq} [data-panel='top']`)).toBeVisible();
+  await page.locator(`${faq} input[name='faq'][value='0']`).check();
+  await expect(page.locator(`${faq} [data-panel='0']`)).toBeVisible();
+  await expect(page.locator(`${faq} [data-panel='top']`)).toBeHidden();
   await page.getByRole("radio", { name: "المشي" }).check();
   await expect(page.locator("[class*='__formFill'] > [data-tone='walk']")).toHaveCSS("opacity", "1");
   await context.close();
@@ -252,7 +343,8 @@ test("hero story: the phone rises once the statement has faded, then the notific
       window.scrollTo({ top: top - 72 + travel * f, behavior: "instant" });
     }, f);
   await scrollTo(0.55);
-  await expect(phone).toHaveCSS("translate", "0px");
+  await expect(phone).toHaveAttribute("data-rise", "up");
+  await expect(phone).toHaveCSS("translate", "none");
   await expect(note(0)).toHaveCSS("opacity", "1");
   await expect(note(3)).toHaveCSS("opacity", "0");
   await scrollTo(0.95);
@@ -271,30 +363,86 @@ test("hero story: the phone rises once the statement has faded, then the notific
   for (const i of [0, 3]) await expect(note(i)).toHaveCSS("opacity", "1");
 });
 
-test("hero story on phones: the phone comes up on its own the moment the statement has faded", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/en");
-  const phone = page.locator("[class$='__phone']");
-  const text = page.locator("#hero-text");
-  await expect(phone).toHaveAttribute("data-rise", "down");
-  // Scroll to `by` px past where the statement has faded (--text-out is 35svh).
-  const scrollPastFade = (by: number) =>
-    page.evaluate((by) => {
+for (const [w, h] of [[1440, 900], [390, 844]] as const) {
+  test(`hero story at ${w}px: the phone comes up on its own the moment the statement has faded`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/en");
+    const phone = page.locator("[class$='__phone']");
+    const text = page.locator("#hero-text");
+    await expect(phone).toHaveAttribute("data-rise", "down");
+    // Scroll to `by` px past where the statement has faded (--text-out is 35svh).
+    const scrollPastFade = (by: number) =>
+      page.evaluate((by) => {
+        const story = document.querySelector<HTMLElement>("[class*='__story']")!;
+        window.scrollTo({ top: story.getBoundingClientRect().top + scrollY - 72 + innerHeight * 0.35 + by, behavior: "instant" });
+      }, by);
+    await scrollPastFade(-40);
+    expect(Number(await text.evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0);
+    await expect(phone).toHaveAttribute("data-rise", "down");
+    expect((await phone.boundingBox())!.y).toBeGreaterThanOrEqual(844);
+    // Just past the fade: no more scrolling, and it rises all the way.
+    await scrollPastFade(4);
+    await expect(phone).toHaveAttribute("data-rise", "up");
+    await expect(phone).toHaveCSS("translate", "none");
+    expect((await phone.boundingBox())!.y).toBeLessThan(h / 2);
+    // Back up into the statement: the phone goes back down.
+    await scrollPastFade(-40);
+    await expect(phone).toHaveAttribute("data-rise", "down");
+  });
+
+  // Focus inside the statement keeps it at full opacity, so the rise has to
+  // follow scroll position, not the fade.
+  test(`hero story at ${w}px: focus inside the statement does not keep the phone down`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/en");
+    const phone = page.locator("[class$='__phone']");
+    await page.locator("#hero-text a").first().focus();
+    await page.evaluate(() => {
       const story = document.querySelector<HTMLElement>("[class*='__story']")!;
-      window.scrollTo({ top: story.getBoundingClientRect().top + scrollY - 72 + innerHeight * 0.35 + by, behavior: "instant" });
-    }, by);
-  await scrollPastFade(-40);
-  expect(Number(await text.evaluate((el) => getComputedStyle(el).opacity))).toBeGreaterThan(0);
-  await expect(phone).toHaveAttribute("data-rise", "down");
-  expect((await phone.boundingBox())!.y).toBeGreaterThanOrEqual(844);
-  // Just past the fade: no more scrolling, and it rises all the way.
-  await scrollPastFade(4);
-  await expect(phone).toHaveAttribute("data-rise", "up");
-  await expect(phone).toHaveCSS("translate", "none");
-  expect((await phone.boundingBox())!.y).toBeLessThan(844 / 2);
-  // Back up into the statement: the phone goes back down.
-  await scrollPastFade(-40);
-  await expect(phone).toHaveAttribute("data-rise", "down");
+      window.scrollTo({ top: story.getBoundingClientRect().top + scrollY - 72 + innerHeight * 0.35 + 4, behavior: "instant" });
+    });
+    await expect(phone).toHaveAttribute("data-rise", "up");
+    await expect(phone).toHaveCSS("translate", "none");
+  });
+}
+
+// Both of these are about the very first frame after a fast jump to the top,
+// so the values are read straight away, never polled.
+for (const [w, h] of [[1440, 900], [390, 844]] as const) {
+  test(`hero story at ${w}px: a fast scroll to the top shows the headline with no phone over it`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto("/en");
+    const phone = page.locator("[class$='__phone']");
+    await page.evaluate(() => {
+      const story = document.querySelector<HTMLElement>("[class*='__story']")!;
+      window.scrollTo({ top: story.getBoundingClientRect().top + scrollY - 72 + innerHeight * 0.35 + 4, behavior: "instant" });
+    });
+    await expect(phone).toHaveAttribute("data-rise", "up");
+    // Two frames, so the scroll-linked fade has had its first update; a
+    // transition would still be 0.7s from done.
+    const [phoneOpacity, textOpacity] = await page.evaluate(async () => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(null))));
+      const opacity = (sel: string) => getComputedStyle(document.querySelector(sel)!).opacity;
+      return [opacity("[class$='__phone']"), opacity("#hero-text")];
+    });
+    expect(phoneOpacity).toBe("0");
+    expect(textOpacity).toBe("1");
+  });
+}
+
+test("top bar: a fast scroll to the top has the full band back at once, with no gaps at the sides", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/ar");
+  const header = page.locator("header").first();
+  // With motion on, the bar stays the full band until the hero story has played out.
+  await page.evaluate(() => window.scrollTo({ top: document.querySelector<HTMLElement>("[class*='__story']")!.getBoundingClientRect().bottom + scrollY, behavior: "instant" }));
+  await expect(header).toHaveAttribute("data-scrolled", "true");
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  // The attribute drops through a React setState; the clip-path is read right after it.
+  await expect(header).not.toHaveAttribute("data-scrolled");
+  const clip = await header.evaluate((el) => getComputedStyle(el, "::before").clipPath);
+  expect(clip).toMatch(/^inset\(0px( 0px){0,2}( [\d.]+px)?\)$/);
 });
 
 test("help picker: a pick tints the card and fills in the request form beside it", async ({ page }) => {
