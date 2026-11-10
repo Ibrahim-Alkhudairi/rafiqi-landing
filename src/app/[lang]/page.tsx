@@ -1,69 +1,40 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import type { CSSProperties, ReactNode } from "react";
-import { content, hasLang, links } from "@/content";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
+import { content, hasLang, links, social } from "@/content";
 import { requestFills, type Content } from "@/content/ar";
 import { Icon, type IconName } from "./icons";
-import { Header, HeroPhone, MobileCta, MobileMenu, PhaseNav, PlaceSearch, TiltCard } from "./motion";
+import { Phone, SiteFooter, SiteHeader, StoreBadges } from "./chrome";
+import { HeroGlow, HeroPhone, PlaceSearch, TiltCard, VolunteerSteps, WhoSwitcher } from "./motion";
 import s from "./page.module.css";
-
-const notePlaces = [s.note0, s.note1, s.note2, s.note3];
 
 export default async function Page({ params }: PageProps<"/[lang]">) {
   const { lang } = await params;
   if (!hasLang(lang)) notFound();
   const t = content[lang];
+  const sticker = t.who.give.sticker;
 
   return (
     <>
-      <a className={s.skip} href="#main">
-        {t.skip}
-      </a>
-
-      <Header className={s.header} after="hero">
-        <div className={s.bar}>
-          <a className={s.brand} href={`/${lang}/`}>
-            <Image src="/icon.png" alt="" width={40} height={40} loading="eager" />
-            <span className={s.brandText}>
-              <span lang="ar">رفيقي</span> <span lang="en">Rafiqi</span>
-            </span>
-          </a>
-          <PhaseNav t={t.phases} />
-          <nav className={s.nav} aria-label={t.navLabel}>
-            <a className={s.button} href="#download">
-              <Icon name="download" />
-              {t.download}
-            </a>
-          </nav>
-          <MobileMenu t={t.phases} label={t.menu} download={t.download} />
-        </div>
-        {/* Language: EN | AR (عربي on the Arabic page) in the corner,
-            outside the bar; the current one is filled. An abbreviated one is
-            also named in full, in its own language, for screen readers. */}
-        <nav className={s.langSwitch} aria-label={t.language}>
-          {t.languages.map((l) => (
-            <a key={l.lang} href={`/${l.lang}/`} hrefLang={l.lang} aria-current={l.lang === lang ? "page" : undefined}>
-              {l.label}
-              {l.name && (
-                <span className={s.srOnly} lang={l.lang}>
-                  {" "}
-                  {l.name}
-                </span>
-              )}
-            </a>
-          ))}
-        </nav>
-      </Header>
+      <SiteHeader lang={lang} after="hero" />
 
       <main id="main" tabIndex={-1}>
         <section id="hero" className={s.hero} aria-labelledby="hero-title">
-          {/* Where the story plays, this runs tall: the stage pins inside it,
-              the text scrolls away over it (page.module.css, "The hero story"). */}
-          <div className={s.story}>
+          <HeroGlow />
+          <div className={s.heroGrid}>
             <div id="hero-text" className={s.heroText}>
-              <h1 id="hero-title">{t.hero.title}</h1>
+              <h1 id="hero-title">
+                {t.hero.title.split("\n").map((line, i) => (
+                  <span key={i}>
+                    {i > 0 && " "}
+                    <span className={s.heroLine}>{line}</span>
+                  </span>
+                ))}
+              </h1>
               <p className={s.lead}>{t.hero.lead}</p>
-              <StoreBadges t={t} />
+              <div className={s.actions}>
+                <StoreBadges t={t} />
+              </div>
               <ul className={s.proof}>
                 {t.hero.proof.map((item) => (
                   <li key={item.text}>
@@ -72,18 +43,29 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
                   </li>
                 ))}
               </ul>
-              <a className={s.volunteerLink} href="#volunteers">
-                {t.hero.volunteer}
-              </a>
             </div>
 
-            <div className={s.stage}>
-              <HeroPhone className={s.phone} after="hero-text">
-                <Image src="/screens/list.png" alt={t.hero.phoneAlt} width={804} height={1702} sizes="19rem" preload />
+            {/* The phone among the kinds of help it covers; decoration, but
+                for the phone's own alt text. */}
+            <div className={s.visual}>
+              <span className={s.ring} aria-hidden="true" />
+              <span className={`${s.ring} ${s.ring2}`} aria-hidden="true" />
+              <HeroPhone className={s.phone}>
+                <span className={s.phoneScreen}>
+                  <Image src="/welcome.png" alt={t.hero.phoneAlt} width={1242} height={2148} sizes="18rem" preload />
+                </span>
               </HeroPhone>
+              {(["hospital", "shopping", "gov", "transport", "walk", "other"] as const).map((icon) => (
+                <span key={icon} className={s.chip} data-tone={icon} aria-hidden="true">
+                  <span>
+                    <Icon name={icon} />
+                  </span>
+                  {t.help.items.find((item) => item.icon === icon)!.title}
+                </span>
+              ))}
               {/* Illustrative notifications built from the app's real statuses. */}
               {t.hero.notes.map((note, i) => (
-                <div key={note.title} className={`${s.note} ${notePlaces[i]}`}>
+                <div key={note.title} className={`${s.note} ${i === 0 ? s.noteCheck : s.noteArrived}`} aria-hidden="true">
                   <TiltCard className={s.noteInner}>
                     {note.icon === "arrived" ? (
                       <span className={s.arrivedDot} />
@@ -103,215 +85,321 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
           </div>
         </section>
 
-        {/* The promise in one sentence; its words light up in reading order as
-            the page scrolls ("Manifesto" in the CSS). Screen readers get it
-            whole, as some stop on every word span. */}
-        <div className={s.manifesto}>
-          <p>
-            <span className={s.srOnly}>{t.manifesto}</span>
-            {t.manifesto.split(" ").map((word, i) => (
-              <span key={i} aria-hidden="true" style={{ "--i": i } as CSSProperties}>
-                {word}{" "}
-              </span>
-            ))}
-          </p>
-        </div>
-
-        {/* The journey, one chapter per step, each shaped by what it shows. */}
-        <section id="before" className={`${s.chapter} ${s.ask}`} aria-labelledby="before-title">
-          <div className={s.chapterCopy}>
-            <h2 id="before-title">{t.before.title}</h2>
-            <p className={s.lead}>{t.before.lead}</p>
-            <h3 id="help-title">{t.before.panelTitle}</h3>
-            {/* Native radios, so hover, tap, click and the arrow keys all
-                work, with or without JavaScript ("Help picker" in the CSS). */}
-            <div className={s.chips} role="radiogroup" aria-labelledby="help-title">
-              {t.help.items.map((item) => (
-                <label key={item.icon} data-tone={item.icon}>
-                  <input type="radio" name="help" value={item.icon} defaultChecked={item.icon === "shopping"} />
-                  <Icon name={item.icon as IconName} />
-                  {item.title}
-                </label>
-              ))}
+        {/* About us: who is behind the app, in two lines of thought: the name
+            and the logo on the start side, the paragraph and the way to the
+            association's site on the other. */}
+        <section id="about" className={s.about} aria-labelledby="about-title">
+          <div className={s.aboutInner}>
+            <svg className={`${s.spark} ${s.aboutSpark1}`} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12z" />
+            </svg>
+            <svg className={`${s.spark} ${s.aboutSpark2}`} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12z" />
+            </svg>
+            <div className={s.aboutBody}>
+              <h2 id="about-title">{t.about.title}</h2>
+              <p>{t.about.text}</p>
+              <a className={s.aboutLink} href={links.association}>
+                {t.about.link}
+                <Icon name="chevron" />
+              </a>
             </div>
-          </div>
-          <div className={s.chapterMedia}>
-            <Shot {...t.before.screen}>
-              {/* The form, filled in for the picked kind of help, in Arabic
-                  like the app itself: its title, the request's name and
-                  description, and the place, drawn over the screenshot's own
-                  fields. */}
-              <span className={s.formFill} aria-hidden="true" lang="ar" dir="rtl">
-                {content.ar.help.items.map(({ icon, title, place }) => (
-                  <span key={icon} data-tone={icon}>
-                    <span className={s.fillTitle}>رفيقي في {title}</span>
-                    <span className={s.fillName}>{requestFills[icon].name}</span>
-                    <span className={s.fillText}>{requestFills[icon].text}</span>
-                    <span className={s.fillPlace}>{place}</span>
-                  </span>
+            <div className={s.aboutVisual}>
+              <div className={s.aboutTile}>
+                <Image className={s.aboutIcon} src="/icon.png" alt="" width={128} height={128} />
+              </div>
+              <ul className={s.aboutTags}>
+                {t.about.tags.map((tag) => (
+                  <li key={tag.text}>
+                    <Icon name={tag.icon as IconName} />
+                    {tag.text}
+                  </li>
                 ))}
-              </span>
-            </Shot>
+              </ul>
+            </div>
           </div>
         </section>
 
-        <section id="way" className={`${s.chapter} ${s.way}`} aria-labelledby="way-title">
-          <div className={s.chapterCopy}>
-            <h2 id="way-title">{t.way.title}</h2>
-            <p className={s.lead}>{t.way.lead}</p>
+        {/* Who it is for: a calm feature list, both sides in view, the line above
+            the selected one a timer (WhoSwitcher in motion.tsx); the card
+            beside it, with a real app screen, trades places to match. The
+            screens are described elsewhere on the page, so they are
+            decoration here. */}
+        <section id="who" className={s.who} aria-labelledby="who-title">
+          <div className={s.whoInner}>
+            <h2 id="who-title">{t.who.title}</h2>
+
+            <WhoSwitcher
+              items={[
+                {
+                  key: "you",
+                  icon: "walk" as const,
+                  label: t.who.you.label,
+                  title: t.who.you.title,
+                  body: (
+                    <>
+                      <p>{t.who.you.text}</p>
+                      <WhoTags tags={t.who.you.tags} />
+                    </>
+                  ),
+                },
+                {
+                  key: "give",
+                  icon: "association" as const, // lucide hand-heart, already in icons.tsx
+                  label: t.who.give.label,
+                  title: t.who.give.title,
+                  body: (
+                    <>
+                      <p>{t.who.give.text}</p>
+                      <WhoTags tags={t.who.give.tags} />
+                      <a className={s.whoLink} href="#volunteers">
+                        {t.hero.volunteer}
+                        <Icon name="chevron" />
+                      </a>
+                    </>
+                  ),
+                },
+              ]}
+              visuals={[
+                <Fragment key="you">
+                  <span className={`${s.whoBackdrop} ${s.whoRing}`} />
+                  <div className={`${s.whoShot} ${s.whoPhoneShot} ${s.whoTiltYou}`}>
+                    <div className={s.whoPhone}>
+                      <Image src="/screens/who-request.jpg" alt="" width={720} height={1560} sizes="17rem" />
+                    </div>
+                  </div>
+                </Fragment>,
+                <Fragment key="give">
+                  <span className={`${s.whoBackdrop} ${s.whoSun}`} />
+                  <div className={`${s.whoShot} ${s.whoPhoneShot} ${s.whoTiltGive}`}>
+                    <div className={s.whoPhone}>
+                      <Image src="/screens/who-volunteer.jpg" alt="" width={591} height={1280} sizes="17rem" />
+                    </div>
+                  </div>
+                  {/* A request as the app lists it. */}
+                  {sticker && (
+                    <span className={`${s.whoSticker} ${s.whoRequest}`}>
+                      <span>
+                        <Icon name="pin" />
+                      </span>
+                      <span>
+                        <strong>{sticker.title}</strong>
+                        <small>2.5 {t.way.away}</small>
+                      </span>
+                    </span>
+                  )}
+                </Fragment>,
+              ]}
+            />
           </div>
-          <div className={s.chapterMedia}>
-            <Shot {...t.way.screen}>
-              <PlaceSearch
-                labelledBy="way-title"
-                places={t.help.items.map(({ icon, place }) => ({ icon, place, km: kmTo(icon) }))}
-                away={t.way.away}
-              />
-            </Shot>
+        </section>
+
+        {/* One journey, four steps on one line that fills as you scroll; each
+            step is a chapter shaped by what it shows. */}
+        <section id="journey" className={s.journey} aria-labelledby="journey-title">
+          <div className={s.journeyHead}>
+            <h2 id="journey-title">{t.journey.title}</h2>
+            <p className={s.lead}>{t.journey.lead}</p>
           </div>
-          {/* On a loop, the two of you set off from your points and meet at
-              the pin. */}
-          <div className={s.mapStage}>
-            <div className={s.mapCaption}>
-              <h3>{t.way.panelTitle}</h3>
+          <div className={s.journeyPath}>
+          <div className={s.step}>
+            <p className={s.stepHead} aria-hidden="true">
+              <span className={s.marker}>1</span>
+              {t.journey.steps[0]}
+            </p>
+          <section id="before" className={`${s.chapter} ${s.ask}`} aria-labelledby="before-title">
+            <div className={s.chapterCopy}>
+              <h3 id="before-title" className={s.stepTitle}>{t.before.title}</h3>
+              <p className={s.lead}>{t.before.lead}</p>
+              <h4 id="help-title">{t.before.panelTitle}</h4>
+              {/* Native radios, so hover, tap, click and the arrow keys all
+                  work, with or without JavaScript ("Help picker" in the CSS). */}
+              <div className={s.chips} role="radiogroup" aria-labelledby="help-title">
+                {t.help.items.map((item) => (
+                  <label key={item.icon} data-tone={item.icon}>
+                    <input type="radio" name="help" value={item.icon} defaultChecked={item.icon === "shopping"} />
+                    <Icon name={item.icon as IconName} />
+                    {item.title}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className={s.chapterMedia}>
+              <Shot {...t.before.screen}>
+                {/* The form, filled in for the picked kind of help, in Arabic
+                    like the app itself: its title, the request's name and
+                    description, and the place, drawn over the screenshot's own
+                    fields. */}
+                <span className={s.formFill} aria-hidden="true" lang="ar" dir="rtl">
+                  {content.ar.help.items.map(({ icon, title, place }) => (
+                    <span key={icon} data-tone={icon}>
+                      <span className={s.fillTitle}>رفيقي في {title}</span>
+                      <span className={s.fillName}>{requestFills[icon].name}</span>
+                      <span className={s.fillText}>{requestFills[icon].text}</span>
+                      <span className={s.fillPlace}>{place}</span>
+                    </span>
+                  ))}
+                </span>
+              </Shot>
+            </div>
+          </section>
+          </div>
+          <div className={s.step}>
+            <p className={s.stepHead} aria-hidden="true">
+              <span className={s.marker}>2</span>
+              {t.journey.steps[1]}
+            </p>
+          <section id="way" className={`${s.chapter} ${s.way}`} aria-labelledby="way-title">
+            <div className={s.chapterCopy}>
+              <h3 id="way-title" className={s.stepTitle}>{t.way.title}</h3>
+              <p className={s.lead}>{t.way.lead}</p>
+            </div>
+            <div className={s.chapterMedia}>
+              <Shot {...t.way.screen}>
+                <PlaceSearch
+                  labelledBy="way-title"
+                  places={t.help.items.map(({ icon, place }) => ({ icon, place, km: kmTo(icon) }))}
+                  away={t.way.away}
+                />
+              </Shot>
+            </div>
+            {/* On a loop, the two of you set off from your points and meet at
+                the pin. */}
+            <div className={s.mapStage}>
+              <div className={s.mapCaption}>
+              <h4>{t.way.panelTitle}</h4>
             </div>
             <div className={s.mapFrame}>
-              <RouteMap />
-              {/* The place, popping up over the pin when the two of you
-                  arrive; the meeting card below says it for screen readers. */}
-              {t.help.items.map(({ icon, place }) => {
-                const [x, y] = meetAt[icon];
-                return (
-                  <span
-                    key={icon}
-                    data-tone={icon}
-                    className={s.meetPop}
-                    aria-hidden="true"
-                    style={{ left: `${x / 12}%`, top: `${(y - 90) / 4.2}%`, "--a": popAnchor(x) } as CSSProperties}
-                  >
-                    {place}
+                <RouteMap />
+                {/* The place, popping up over the pin when the two of you
+                    arrive; the meeting card below says it for screen readers. */}
+                {t.help.items.map(({ icon, place }) => {
+                  const [x, y] = meetAt[icon];
+                  return (
+                    <span
+                      key={icon}
+                      data-tone={icon}
+                      className={s.meetPop}
+                      aria-hidden="true"
+                      style={{ left: `${x / 12}%`, top: `${(y - 90) / 4.2}%`, "--a": popAnchor(x) } as CSSProperties}
+                    >
+                      {place}
+                    </span>
+                  );
+                })}
+              </div>
+              <p className={s.meetCard}>
+                <span>{t.way.meeting}</span>
+                {/* The place and distance for the kind of help picked in the
+                    Ask chapter. */}
+                <strong>
+                  {t.help.items.map(({ icon, place }) => (
+                    <span key={icon} data-tone={icon}>
+                      {place}
+                    </span>
+                  ))}
+                </strong>
+                <span className={s.distance}>
+                  <Icon name="pin" />
+                  <span>
+                    {t.help.items.map(({ icon }) => (
+                      <span key={icon} data-tone={icon}>
+                        {kmTo(icon)}
+                      </span>
+                    ))}{" "}
+                    {t.way.away}
                   </span>
-                );
-              })}
+                </span>
+              </p>
             </div>
-            <p className={s.meetCard}>
-              <span>{t.way.meeting}</span>
-              {/* The place and distance for the kind of help picked in the
-                  Ask chapter. */}
-              <strong>
-                {t.help.items.map(({ icon, place }) => (
-                  <span key={icon} data-tone={icon}>
-                    {place}
+          </section>
+          </div>
+          <div className={s.step}>
+            <p className={s.stepHead} aria-hidden="true">
+              <span className={s.marker}>3</span>
+              {t.journey.steps[2]}
+            </p>
+          <section id="matched" className={s.chapter} aria-labelledby="matched-title">
+            <div className={s.chapterCopy}>
+              <h3 id="matched-title" className={s.stepTitle}>{t.matched.title}</h3>
+              <p className={s.lead}>{t.matched.lead}</p>
+            </div>
+            <ul className={s.matchedList}>
+              {t.matched.points.map((point) => (
+                <li key={point.title}>
+                  <Icon name={point.icon as IconName} />
+                  <strong>{point.title}</strong>
+                  <span>{point.text}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          </div>
+          <div className={s.step}>
+            <p className={s.stepHead} aria-hidden="true">
+              <span className={s.marker}>4</span>
+              {t.journey.steps[3]}
+            </p>
+          <section id="meet" className={`${s.chapter} ${s.meet}`} aria-labelledby="meet-title">
+            <div className={s.chapterCopy}>
+              <h3 id="meet-title" className={s.stepTitle}>{t.meet.title}</h3>
+              <p className={s.lead}>{t.meet.lead}</p>
+              {/* The request's path; on a loop, the line fills step by step. */}
+              <ol className={s.steps}>
+                {t.meet.steps.map((step) => (
+                  <li key={step.label}>
+                    <strong>{step.label}</strong>
+                    <span>{step.text}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className={s.stepsNote}>{t.meet.after}</p>
+            </div>
+            <div className={s.chapterMedia}>
+              <p className={s.floatNote}>
+                <span className={s.arrivedDot} />
+                {t.meet.arrived}
+              </p>
+              <Shot {...t.meet.screen} />
+            </div>
+          </section>
+          </div>
+          </div>
+            {/* The promise in one sentence; its words light up in reading order as
+                the page scrolls ("Manifesto" in the CSS). Screen readers get it
+                whole, as some stop on every word span. */}
+            <div className={s.manifesto}>
+              <p>
+                <span className={s.srOnly}>{t.manifesto}</span>
+                {t.manifesto.split(" ").map((word, i) => (
+                  <span key={i} aria-hidden="true" style={{ "--i": i } as CSSProperties}>
+                    {word}{" "}
                   </span>
                 ))}
-              </strong>
-              <span className={s.distance}>
-                <Icon name="pin" />
-                <span>
-                  {t.help.items.map(({ icon }) => (
-                    <span key={icon} data-tone={icon}>
-                      {kmTo(icon)}
-                    </span>
-                  ))}{" "}
-                  {t.way.away}
-                </span>
-              </span>
-            </p>
-          </div>
+              </p>
+            </div>
         </section>
 
-        <section id="meet" className={`${s.chapter} ${s.meet}`} aria-labelledby="meet-title">
-          <div className={s.chapterCopy}>
-            <h2 id="meet-title">{t.meet.title}</h2>
-            <p className={s.lead}>{t.meet.lead}</p>
-            {/* The request's path; on a loop, the line fills step by step. */}
-            <ol className={s.steps}>
-              {t.meet.steps.map((step) => (
-                <li key={step.label}>
-                  <strong>{step.label}</strong>
-                  <span>{step.text}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className={s.chapterMedia}>
-            <p className={s.floatNote}>
-              <span className={s.arrivedDot} />
-              {t.meet.arrived}
-            </p>
-            <Shot {...t.meet.screen} />
-          </div>
-        </section>
-
-        {/* Who comes: a navy band like the hero, the licence number set large. */}
-        <section id="trust" className={s.trust} aria-labelledby="trust-title">
-          <div className={s.trustInner}>
-            <h2 id="trust-title">{t.trust.title}</h2>
-            <ul className={s.trustList}>
-              {t.trust.items.map((item) => (
-                <li key={item.icon}>
-                  {item.icon === "association" ? (
-                    // Also in the text below, so screen readers skip this one.
-                    <span className={s.bigNumber} aria-hidden="true">
-                      {[...t.trust.licence].map((digit, i) => (
-                        <span key={i}>{digit}</span>
-                      ))}
-                    </span>
-                  ) : (
-                    <Icon name={item.icon as IconName} />
-                  )}
-                  <strong>{item.title}</strong>
-                  <span>{item.text}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        <section id="volunteers" className={`${s.chapter} ${s.volunteer}`} aria-labelledby="volunteers-title">
-          <div className={s.chapterCopy}>
+        {/* The other side of the same journey: one light-blue band, the volunteer's
+            four steps as a stepper on the start side, a phone and two
+            stickers on the other (VolunteerSteps in motion.tsx). */}
+        <section id="volunteers" className={s.volBand} aria-labelledby="volunteers-title">
+          <div className={s.volHead}>
             <h2 id="volunteers-title">{t.volunteers.title}</h2>
             <p className={s.lead}>{t.volunteers.lead}</p>
-            <ul className={s.points}>
-              {t.volunteers.points.map((point) => (
-                <li key={point}>
-                  <Icon name="check" />
-                  {point}
-                </li>
-              ))}
-            </ul>
-            <p className={s.hours}>
-              <Icon name="award" />
-              <span>{t.volunteers.hours}</span>
-            </p>
-            <StoreBadges t={t} />
           </div>
-          <div className={s.chapterMedia}>
-            <Shot {...t.volunteers.screen} />
-          </div>
+          <VolunteerSteps steps={t.volunteers.steps} events={t.volunteers.eventsShort} hours={t.volunteers.hoursShort} />
         </section>
 
-        <section className={s.faqSection} aria-labelledby="faq-title">
+        <section id="faq" className={s.faqSection} aria-labelledby="faq-title">
           <div className={s.faqHead}>
             <h2 id="faq-title">{t.faq.title}</h2>
             <p className={s.help}>
               {t.faq.help} <Phone n={t.footer.phone} />
             </p>
           </div>
-          <div className={s.faq}>
-            <div className={s.faqTopics} role="radiogroup" aria-labelledby="faq-title">
-              <label>
-                <input type="radio" name="faq" value="top" defaultChecked />
-                {t.faq.top}
-              </label>
-              {t.faq.topics.map((topic, i) => (
-                <label key={topic.title}>
-                  <input type="radio" name="faq" value={i} />
-                  {topic.title}
-                </label>
-              ))}
-            </div>
-            <div className={s.faqPanel} data-panel="top">
+          <div>
+            <div className={s.faqPanel}>
               {t.faq.items.map((item) => (
                 <details key={item.q} className={s.qa}>
                   <summary>{item.q}</summary>
@@ -319,96 +407,19 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
                 </details>
               ))}
             </div>
-            {t.faq.topics.map((topic, i) => (
-              <div key={topic.title} className={s.faqPanel} data-panel={i}>
-                {topic.groups.map((group) => (
-                  <div key={group.title} className={s.faqGroup}>
-                    <h3>{group.title}</h3>
-                    {group.items.map((item) => (
-                      <details key={item.q} className={s.qa}>
-                        <summary>{item.q}</summary>
-                        <p>{item.a}</p>
-                      </details>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Closing: a navy band like the hero, the welcome screen rising. */}
-        <section id="download" className={s.close} aria-labelledby="download-title">
-          <h2 id="download-title">{t.close.title}</h2>
-          <p className={s.lead}>{t.close.text}</p>
-          <StoreBadges t={t} />
-          {/* Desktop only. A QR code can't be used without sight, so the
-              store links above stay the accessible path; these are extras. */}
-          <div className={s.qr}>
-            <p>{t.close.qrHint}</p>
-            <div className={s.qrCodes}>
-              <figure>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/qr/app-store.svg" alt={t.close.qrAppStore} width={132} height={132} />
-                <figcaption lang="en">App Store</figcaption>
-              </figure>
-              <figure>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/qr/google-play.svg" alt={t.close.qrGooglePlay} width={132} height={132} />
-                <figcaption lang="en">Google Play</figcaption>
-              </figure>
-            </div>
-          </div>
-          <div className={s.closePhone}>
-            <div className={s.device}>
-              <Image src="/welcome.png" alt={t.close.screenAlt} width={1242} height={2148} sizes="16rem" />
-            </div>
+            <a className={s.faqMore} href={`/${lang}/faq/`}>
+              {t.faq.more}
+              <Icon name="chevron" />
+            </a>
           </div>
         </section>
       </main>
 
-      <footer className={s.footer}>
-        <div className={s.footerInner}>
-          <nav aria-label={t.footer.label}>
-            <ul className={s.footerLinks}>
-              <li>
-                <a href={links.appStore} lang="en">
-                  App Store
-                </a>
-              </li>
-              <li>
-                <a href={links.googlePlay} lang="en">
-                  Google Play
-                </a>
-              </li>
-              <li>
-                <a href={links.privacy}>{t.footer.privacy}</a>
-              </li>
-              <li>
-                <a href={links.association}>{t.footer.association}</a>
-              </li>
-            </ul>
-          </nav>
-          <p className={s.contact}>
-            {t.footer.contact}: <Phone n={t.footer.phone} />
-          </p>
-          <p>{t.footer.by}</p>
-        </div>
-      </footer>
-
-      <MobileCta label={t.download} />
+      <SiteFooter lang={lang} />
     </>
   );
 }
 
-// Digits run left to right even inside Arabic text.
-function Phone({ n }: { n: string }) {
-  return (
-    <a href={`tel:${n}`} dir="ltr">
-      {n}
-    </a>
-  );
-}
 
 // Where you meet for each kind of help: a street corner on the map, in map
 // units, clear of the caption and meeting card that float over it.
@@ -493,6 +504,20 @@ function RouteMap() {
 }
 
 // A real app screen, cropped to the part that matters.
+// The reasons, as stickers; an icon only where the content gives one.
+function WhoTags({ tags }: { tags: { icon: string; text: string }[] }) {
+  return (
+    <ul className={s.whoTags}>
+      {tags.map((tag) => (
+        <li key={tag.text}>
+          {tag.icon && <Icon name={tag.icon as IconName} />}
+          {tag.text}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Shot({ src, alt, w, h, children }: { src: string; alt: string; w: number; h: number; children?: ReactNode }) {
   return (
     <div className={s.shot}>
@@ -502,17 +527,3 @@ function Shot({ src, alt, w, h, children }: { src: string; alt: string; w: numbe
   );
 }
 
-function StoreBadges({ t }: { t: Content }) {
-  return (
-    <div className={s.stores}>
-      <a href={links.appStore} lang={t.stores.appStore.lang}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/badges/app-store.svg" alt={t.stores.appStore.alt} width={175} height={52} />
-      </a>
-      <a href={links.googlePlay} lang={t.stores.googlePlay.lang}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={t.stores.googlePlay.src} alt={t.stores.googlePlay.alt} width={175} height={52} />
-      </a>
-    </div>
-  );
-}

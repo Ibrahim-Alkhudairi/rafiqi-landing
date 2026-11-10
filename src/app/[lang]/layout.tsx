@@ -1,13 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Readex_Pro } from "next/font/google";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import { notFound } from "next/navigation";
 import { content, hasLang, langs } from "@/content";
 import { MotionProvider } from "./motion";
 import "../globals.css";
 
-// Readex Pro: the Arabic extension of Lexend, a face built on reading-ease
-// research. One variable family; HEXP widens the display headline.
-const readex = Readex_Pro({ subsets: ["arabic", "latin"], axes: ["HEXP"], variable: "--font-readex" });
+// IBM Plex Sans Arabic (user decision, 2026-11-09): one family for both
+// scripts, so the Arabic and English pages share a voice. Static weights only,
+// so anything else snaps to the nearest of these.
+const plex = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex",
+});
 
 export const dynamicParams = false;
 export const generateStaticParams = () => langs.map((lang) => ({ lang }));
@@ -39,7 +44,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
     <html
       lang={lang}
       dir={lang === "ar" ? "rtl" : "ltr"}
-      className={readex.variable}
+      className={plex.variable}
     >
       <body>
         <MotionProvider>{children}</MotionProvider>

@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Readex_Pro } from "next/font/google";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import s from "./global-not-found.module.css";
 
 // Any URL no route matches. It skips app/[lang]/layout.tsx, so it brings its
 // own font and theme; Arabic first, like the site, with English beside it.
-const readex = Readex_Pro({ subsets: ["arabic", "latin"], variable: "--font-readex" });
+const plex = IBM_Plex_Sans_Arabic({ subsets: ["arabic", "latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex" });
 
 export const metadata: Metadata = {
   title: "الصفحة غير موجودة | Page not found",
@@ -18,7 +18,7 @@ export const viewport: Viewport = {
 
 export default function GlobalNotFound() {
   return (
-    <html lang="ar" dir="rtl" className={readex.variable}>
+    <html lang="ar" dir="rtl" className={plex.variable}>
       <body className={s.page}>
         <main className={s.main}>
           <section className={s.part}>

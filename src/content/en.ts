@@ -2,7 +2,7 @@ import type { Content } from "./ar";
 
 export const en: Content = {
   meta: {
-    title: "Rafiqi | A verified companion for every outing",
+    title: "Rafiqi | A volunteer companion for people with disabilities",
     description:
       "Rafiqi connects people with disabilities to volunteers verified through Nafath. Free on iPhone, iPad and Android.",
   },
@@ -16,32 +16,64 @@ export const en: Content = {
   ],
   download: "Download",
   hero: {
-    title: "A verified companion for every outing",
-    lead: "Ask for a volunteer to go with you on a walk, shopping, to the hospital or to a government office.",
+    title: "A volunteer companion\nfor people with disabilities",
+    lead: "Ask in the app for someone to go with you to the hospital, the shops or any errand, and a verified volunteer meets you where you choose. Free.",
     volunteer: "I want to volunteer",
     proof: [
-      { icon: "verified", text: "Volunteers verified through Nafath" },
-      { icon: "association", text: "By Liajlehum · licence 1053" },
+      { icon: "verified", text: "Every volunteer's identity verified through Nafath" },
+      { icon: "association", text: "By Liajlehum" },
     ],
-    phoneAlt: "Rafiqi home screen: the list of available requests sorted by closest to you; the first is a dental appointment 2.5 km away",
+    phoneAlt: "Rafiqi welcome screen: the Rafiqi logo in the middle, above blue waves",
     notes: [
-      { icon: "check", title: "A volunteer accepted your request", text: "Dental appointment · 10:12 PM" },
-      { icon: "association", title: "New request near you", text: "2.5 km from you" },
-      { icon: "pin", title: "Meeting point", text: "Dr. Sulaiman Al-Habib Hospital, Al Olaya" },
-      { icon: "arrived", title: "The volunteer has arrived", text: "At the meeting point now" },
+      { icon: "check", title: "Volunteer assigned", text: "Dental appointment · 10:12 PM" },
+      { icon: "arrived", title: "Volunteer arrived", text: "At the meeting point now" },
     ],
+  },
+  about: {
+    title: "About us",
+    text: "Rafiqi is a community app from Liajlehum that serves people with disabilities. It aims to strengthen independence and inclusion in the community by connecting people with disabilities with identity-verified volunteers who provide companionship and support.",
+    link: "Visit Liajlehum's website",
+    tags: [
+      { icon: "association", text: "By Liajlehum" },
+      { icon: "verified", text: "Verified through Nafath" },
+    ],
+  },
+  who: {
+    title: "Who is Rafiqi for?",
+    you: {
+      label: "People with disabilities",
+      title: "If you have a disability",
+      text: "Ask for someone to go with you to the hospital, the shops, a government office or on a walk, or to one of the association's events.",
+      tags: [
+        { icon: "verified", text: "Volunteers verified through Nafath" },
+        { icon: "", text: "Free" },
+        { icon: "pin", text: "You choose the time and place" },
+      ],
+    },
+    give: {
+      label: "Volunteers",
+      title: "If you want to volunteer",
+      sticker: { title: "New request" },
+      text: "Help a person with a disability on their errand, when it suits you.",
+      tags: [
+        { icon: "", text: "Requests near you" },
+        { icon: "", text: "Your volunteer hours count" },
+        { icon: "", text: "Apply for what fits your time" },
+      ],
+    },
   },
   stores: {
     appStore: { alt: "Download on the App Store", lang: "en" },
     googlePlay: { alt: "Get it on Google Play", lang: "en", src: "/badges/google-play-en.png" },
   },
   phases: {
-    label: "Parts of the journey",
+    label: "Page sections",
     items: [
-      { id: "before", label: "Ask", icon: "chat", sections: ["before"] },
-      { id: "way", label: "On the way", icon: "pin", sections: ["way"] },
-      { id: "meet", label: "At the meeting", icon: "check", sections: ["meet"] },
-      { id: "volunteers", label: "Volunteer", icon: "association", sections: ["trust", "volunteers"] },
+      { id: "about", label: "About us", icon: "read", sections: ["about"] },
+      { id: "who", label: "Who it's for", icon: "walk", sections: ["who"] },
+      { id: "journey", label: "How it works", icon: "pin", sections: ["journey", "before", "way", "matched", "meet"] },
+      { id: "volunteers", label: "Volunteering", icon: "association", sections: ["volunteers"] },
+      { id: "faq", label: "FAQ", icon: "chat", sections: ["faq"] },
     ],
   },
   help: {
@@ -49,80 +81,84 @@ export const en: Content = {
       { icon: "walk", title: "Walking", place: "King Abdullah Park, Al Malaz" },
       { icon: "shopping", title: "Shopping", place: "Riyadh Park, Al Aqiq" },
       { icon: "hospital", title: "Hospital", place: "Dr. Sulaiman Al-Habib Hospital, Al Olaya" },
-      { icon: "gov", title: "Government offices", place: "Civil Affairs office, Al Malaz" },
+      { icon: "gov", title: "Ministries and government offices", place: "Civil Affairs office, Al Malaz" },
       { icon: "transport", title: "Getting around", place: "Olaya metro station" },
       { icon: "other", title: "Other needs", place: "Kingdom Tower, Al Olaya" },
     ],
   },
   manifesto: "Not a ride. Not a carer. A verified person from your community who meets you where you choose, and goes with you.",
+  journey: {
+    title: "Your journey with Rafiqi",
+    lead: "From your request to meeting your companion, in four steps.",
+    steps: ["Ask", "Set the meeting point", "A volunteer takes it", "You meet"],
+  },
   before: {
-    title: "Ask for a companion in a minute",
-    lead: "Pick the kind of help, the date and time, and say what you need.",
+    title: "Pick the kind of help and ask",
+    lead: "Pick the kind of help, then fill in the request details: date, time, name and description.",
     panelTitle: "What do you need company for?",
     screen: {
-      src: "/screens/request-crop.png",
-      w: 787,
-      h: 1115,
-      alt: "Rafiqi request form for the kind of help picked: meeting date, start and end time, request name and description, location, and a confirm button",
+      src: "/screens/request-filled.jpg",
+      w: 738,
+      h: 1050,
+      alt: "The “Rafiqi at the hospital” request form filled in: meeting date, start and end time, request name and description, the chosen meeting place, and a Confirm request button",
     },
   },
   way: {
-    title: "Set the meeting point",
-    lead: "Search for a place or use your current location, so the volunteer knows where to meet you.",
+    title: "Set the meeting point and confirm it",
+    lead: "Search for a place or use your current location, then confirm it so the volunteer knows where to meet you. Last, you confirm the request.",
     panelTitle: "Two routes, one meeting point",
     meeting: "Meeting point",
     away: "km from you",
     screen: {
-      src: "/screens/map-crop.png",
-      w: 784,
-      h: 1048,
-      alt: "The app's place search with suggestions, above a Riyadh map with the meeting pin and a use-my-location button",
+      src: "/screens/map-confirm.jpg",
+      w: 738,
+      h: 1298,
+      alt: "Add request location: a place search with suggestions, a map with the meeting pin, and below it the selected address and a Confirm location button",
     },
   },
   meet: {
-    title: "Follow your request until your companion arrives",
+    title: "Follow your request until you meet",
     lead: "Know your request's status as it changes, and contact the volunteer directly.",
     steps: [
       { label: "New", text: "You send your request." },
-      { label: "Accepted", text: "A verified volunteer accepts it, and you get their contact details, like their mobile number." },
+      { label: "Volunteer assigned", text: "A verified volunteer is assigned, and you see a way to contact them." },
       { label: "Volunteer arrived", text: "They reach the meeting point." },
     ],
+    after: "It becomes “Completed” when it ends, or “Cancelled” if you cancel it. If the volunteer withdraws, your request goes back to “New” and other volunteers see it.",
     arrived: "The volunteer has arrived",
     screen: {
-      src: "/screens/status-crop.png",
-      w: 785,
-      h: 468,
-      alt: "Request #481, a work meeting, with the status “volunteer arrived”, a contact row for the requester, the request type and the meeting place",
+      src: "/screens/status-requester.jpg",
+      w: 720,
+      h: 392,
+      alt: "My requests sorted by status (All, In progress, Completed, Cancelled or rejected), with a “Medical injection appointment” request marked “New” below",
     },
   },
-  trust: {
-    title: "Who will go with you?",
-    licence: "1053",
-    items: [
-      { icon: "verified", title: "Identity verified through Nafath", text: "Every volunteer is verified before they can accept a request." },
-      { icon: "chat", title: "Contact after acceptance", text: "Once they accept, you get their mobile number and can message them in the app." },
+  matched: {
+    title: "A volunteer takes your request",
+    lead: "A verified volunteer takes it, and your request's status changes to “Volunteer assigned”.",
+    points: [
+      { icon: "verified", title: "Identity verified through Nafath", text: "Everyone signs in with their ID number through Nafath, and every volunteer is verified before they can accept a request." },
+      { icon: "chat", title: "Contact after acceptance", text: "Once they accept, you see an option to contact the volunteer, with their first name." },
       {
         icon: "association",
         title: "By Liajlehum",
-        text: "A charity registered with the Ministry of Human Resources and Social Development, licence no. 1053.",
+        text: "A charity that serves people with disabilities.",
       },
     ],
   },
   volunteers: {
     title: "Volunteer as a companion",
-    lead: "Help someone with a disability on their outing, at a time that suits you.",
-    points: [
-      "Browse requests near you.",
-      "Accept one that suits you, and it's yours straight away.",
-      "Get the requester's contact details, like their mobile number, and plan the outing together.",
+    lead: "On the other side of every request is a volunteer like you, helping at a time that suits them.",
+    steps: [
+      { title: "Browse requests", text: "Sort them by soonest, newest or nearest to you (nearest needs location access).", screen: { src: "/screens/who-volunteer.jpg", w: 591, h: 1280, alt: "The volunteer home screen: association announcements, “All available requests” with the sort buttons (soonest, newest, nearest to you), and request cards below" } },
+      { title: "Apply for a request", text: "Apply for the request that suits you, and it's assigned to you straight away. You can't withdraw from a request dated today.", screen: { src: "/screens/vol-apply.jpg", w: 591, h: 1280, alt: "Details of request #550, a medical injection appointment marked “New”, a notice that you can't withdraw from a request dated today, and an “Apply for the request” button" } },
+      { title: "Contact the requester", text: "You see an option to contact them, with their first name, and agree on the details of the outing.", screen: { src: "/screens/vol-contact.jpg", w: 348, h: 755, alt: "Request #481, a work meeting marked “Volunteer assigned”, with “Contact the requester” by first name, the request type and the meeting place" } },
+      { title: "Meet", text: "You meet them where they chose, and your volunteer hours count.", screen: { src: "/screens/vol-requests.jpg", w: 348, h: 755, alt: "The volunteer's My requests: “Received” and “Applied” tabs, with a medical injection appointment marked “Volunteer assigned”, its date and time" } },
     ],
+    events: "Browse the association's events and see the requests made inside each one.",
+    eventsShort: "Browse the association's events",
+    hoursShort: "Your hours count",
     hours: "Your volunteer hours are counted with the National Center for Non-Profit Sector (NCNP).",
-    screen: {
-      src: "/screens/requests-crop.png",
-      w: 804,
-      h: 554,
-      alt: "Requests sorted by closest to you; the first, a dental appointment at Dr. Sulaiman Al-Habib Hospital, is 2.5 km away",
-    },
   },
   faq: {
     title: "Common questions",
@@ -142,7 +178,7 @@ export const en: Content = {
       },
       {
         q: "Does the app work with a screen reader?",
-        a: "Yes, though the experience can vary with your device, its operating system version and your accessibility settings.",
+        a: "The Rafiqi user guide explains how to set up your phone's screen reader (VoiceOver on iPhone, TalkBack on Android) for Arabic and English. If you have trouble, call Liajlehum.",
       },
       {
         q: "Can I use the app in any city?",
@@ -150,7 +186,7 @@ export const en: Content = {
       },
       {
         q: "What happens after I send a request?",
-        a: "The request starts as \"New\" and stays visible to volunteers while it's still valid. When the first volunteer taps accept, it's assigned to them straight away, the status changes to \"Volunteer assigned\", and it disappears from the public list. In the current flow, there's no step where a volunteer waits for manual approval.",
+        a: "The request starts as \"New\" and stays visible to volunteers while it's still valid. When the first volunteer taps \"Apply for the request\", it's assigned to them straight away, the status changes to \"Volunteer assigned\", and it disappears from the public list. In the current flow, there's no step where a volunteer waits for manual approval.",
       },
       {
         q: "How do I get started as a volunteer?",
@@ -158,6 +194,20 @@ export const en: Content = {
       },
     ],
     top: "Most asked",
+    more: "See all questions",
+    page: {
+      metaTitle: "FAQ | Rafiqi",
+      title: "All questions",
+      lead: "Search for your question, or browse the questions by category.",
+      search: "Search the questions",
+      placeholder: "For example: is it free?",
+      count: "Matching questions:",
+      none: "No questions match your search. Try another word, or call Liajlehum on",
+      clear: "Clear search",
+      all: "All questions",
+      filter: "Filter by category",
+      home: "Back to home",
+    },
     topics: [
       {
         title: "General",
@@ -184,6 +234,7 @@ export const en: Content = {
                 q: "When do the requester and the volunteer see each other's contact details?",
                 a: "Once a volunteer accepts the request and its status becomes \"Volunteer assigned\", the requester sees an option to contact the volunteer, and the volunteer sees an option to contact the requester.",
               },
+              { q: "Can I delete my account?", a: "Yes, from the \"My account\" page in the app." },
             ],
           },
           {
@@ -191,7 +242,7 @@ export const en: Content = {
             items: [
               {
                 q: "Can I use the app without someone else's help?",
-                a: "The core tasks are designed so you can complete them on your own. Some users may need to adjust their screen reader, text size or location permissions on the device.",
+                a: "You may need some help setting up your device (screen reader, text size, location permission).",
               },
             ],
           },
@@ -205,7 +256,7 @@ export const en: Content = {
             items: [
               {
                 q: "Can I choose the kind of help I need?",
-                a: "Yes. You start a request by choosing the right category or service: walking, shopping, a hospital visit, government offices, getting around, or other needs. Then give the request a clear name and a short description of what you need.",
+                a: "Yes. You start a request by choosing the right category or service: walking, shopping, a hospital visit, ministries and government offices, getting around, or other needs. Then give the request a clear name and a short description of what you need.",
               },
               {
                 q: "What is the request name? Is it the address?",
@@ -230,7 +281,7 @@ export const en: Content = {
             items: [
               {
                 q: "Is it easy to set the location?",
-                a: "Yes. \"Add request location\" opens a map you can move, zoom in and zoom out, and you can search by place name or choose \"Use my current location\". Drop the pin on the exact meeting point, then tap Save to attach the location to the request. What matters most is that the saved location is the real meeting point the volunteer can reach.",
+                a: "Yes. \"Add request location\" opens a map you can move, zoom in and zoom out, and you can search by place name or choose \"Use my current location\". Drop the pin on the exact meeting point, then tap \"Confirm location\" to attach the location to the request. What matters most is that the confirmed location is the real meeting point the volunteer can reach.",
               },
               {
                 q: "What if I deny location permission?",
@@ -263,7 +314,7 @@ export const en: Content = {
               },
               {
                 q: "Can I see the status of my request?",
-                a: "Yes. The status appears on the \"My requests\" page and on the request card. It moves from \"New\" to \"Volunteer assigned\", then to \"Volunteer arrived\" when the service begins, and finally to \"Request completed\" once it's closed. You may get notifications when it changes, but the status inside the app is the reference if a notification is late.",
+                a: "Yes. The status appears on the \"My requests\" page and on the request card. It moves from \"New\" to \"Volunteer assigned\", then to \"Volunteer arrived\" when the request starts, and finally to \"Completed\" once it's done. If you cancel it, it becomes \"Cancelled\". You may get notifications when it changes, but the status inside the app is the reference if a notification is late.",
               },
               {
                 q: "What happens if the request time passes and no volunteer was assigned?",
@@ -336,7 +387,7 @@ export const en: Content = {
               },
               {
                 q: "What happens when I withdraw?",
-                a: "Your assignment is removed and the requester is notified. The request may go back to the public list, if it's still valid, for another volunteer to accept. There's no guarantee a replacement will be found, so withdrawing can affect the requester and their plans. Note that withdrawing repeatedly after accepting requests may lead to your account being restricted or banned.",
+                a: "Your assignment is removed and the requester is notified. The request goes back to \"New\" and shows to the other volunteers. There's no guarantee a replacement will be found, so withdrawing can affect the requester and their plans. Note that withdrawing repeatedly after accepting requests may lead to your account being restricted or banned.",
               },
               {
                 q: "Why is there no withdraw button on the day of the request?",
@@ -348,20 +399,32 @@ export const en: Content = {
       },
     ],
   },
-  close: {
-    title: "Get Rafiqi",
-    qrHint: "Or scan with your phone's camera:",
-    qrAppStore: "QR code that opens Rafiqi on the App Store",
-    qrGooglePlay: "QR code that opens Rafiqi on Google Play",
-    text: "Free on iPhone, iPad and Android.",
-    screenAlt: "Rafiqi welcome screen: the Rafiqi logo above blue waves",
-  },
   footer: {
     label: "App links",
-    contact: "Contact Liajlehum",
     phone: "920019904",
     by: "The Rafiqi app is made by Liajlehum Association for Disability.",
     association: "Liajlehum website",
-    privacy: "Privacy policy",
+    groups: { app: "The app", sections: "Quick links", association: "Liajlehum", follow: "Follow us", contact: "Contact and locations" },
+    pages: {
+      about: "About us",
+      services: "E-services",
+      volunteer: "Volunteer opportunities",
+      donate: "Donate",
+      contact: "Write to us",
+      branches: "Branches",
+    },
+    social: {
+      x: "Liajlehum on X",
+      instagram: "Liajlehum on Instagram",
+      youtube: "Liajlehum on YouTube",
+      facebook: "Liajlehum on Facebook",
+    },
+    locations: [
+      { name: "Head office", address: "Al Ghazalah, Al Shumaisi district, Riyadh 12745" },
+      { name: "Tabuk office", address: "Tabuk" },
+      { name: "Dammam office", address: "Dammam, Eastern Province" },
+      { name: "Abha office", address: "Abha, Southern Province" },
+    ],
+    email: "info@liajlehum.org.sa",
   },
 };
