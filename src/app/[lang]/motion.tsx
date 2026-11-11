@@ -351,50 +351,86 @@ export function MobileCta({ label, base = "" }: { label: string; base?: string }
 // straight, no movement.
 const rest = { rotateX: 0, rotateY: 0 };
 
-export function HeroPhone({ className, children }: { className: string; children: ReactNode }) {
+// The hero phone: tilts toward the pointer anywhere over the hero (up to 9
+// degrees, eased every frame), with a very slow sway of its own so it is alive
+// on touch screens too. Only the tilt is written (as CSS variables, read by a
+// transform), from one rAF loop that runs only while the hero is on screen.
+// Reduced motion: nothing moves.
+export function HeroPhone({ className, label, children }: { className: string; label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const reduce = useReduced();
-  const tiltX = useMotionValue(rest.rotateX);
-  const tiltY = useMotionValue(rest.rotateY);
-  const rotateX = useSpring(tiltX, { stiffness: 150, damping: 18 });
-  const rotateY = useSpring(tiltY, { stiffness: 150, damping: 18 });
 
   useEffect(() => {
-    if (reduce || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-    const reach = 460; // px from the phone's centre where the tilt starts
-    const max = 5; // degrees at the edge of that reach
+    const el = ref.current;
+    const hero = document.getElementById("hero");
+    if (!el || !hero || reduce) return;
+    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const maxY = 9;
+    const maxX = 7;
+    let tx = 0; // the pointer's target, -1 to 1 over the hero
+    let ty = 0;
+    let x = 0; // eased
+    let y = 0;
+    let raf = 0;
+    let on = false;
     const onMove = (e: PointerEvent) => {
-      const r = ref.current?.getBoundingClientRect();
-      if (!r) return;
-      const dx = e.clientX - (r.left + r.width / 2);
-      const dy = e.clientY - (r.top + r.height / 2);
-      const near = Math.hypot(dx, dy) < reach;
-      tiltY.set(rest.rotateY + (near ? (dx / reach) * max : 0));
-      tiltX.set(rest.rotateX + (near ? (-dy / reach) * max : 0));
+      if (e.pointerType !== "mouse") return;
+      const r = hero.getBoundingClientRect();
+      tx = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
+      ty = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
     };
-    const reset = () => {
-      tiltX.set(rest.rotateX);
-      tiltY.set(rest.rotateY);
+    const onLeave = () => {
+      tx = 0;
+      ty = 0;
     };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    document.addEventListener("pointerleave", reset);
+    const frame = (now: number) => {
+      const t = now / 1000;
+      x += (tx - x) * 0.08;
+      y += (ty - y) * 0.08;
+      const swayY = 2 * Math.sin((t * Math.PI * 2) / 8); // idle: +-2 degrees over 8s
+      const swayX = 1 * Math.sin((t * Math.PI * 2) / 10 + 1);
+      const ry = x * maxY + swayY;
+      const rx = -y * maxX + swayX;
+      el.style.setProperty("--rx", `${rx.toFixed(2)}deg`);
+      el.style.setProperty("--ry", `${ry.toFixed(2)}deg`);
+      raf = requestAnimationFrame(frame);
+    };
+    const start = () => {
+      if (on) return;
+      on = true;
+      raf = requestAnimationFrame(frame);
+    };
+    const stop = () => {
+      on = false;
+      cancelAnimationFrame(raf);
+    };
+    const observer = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
+    observer.observe(hero);
+    if (fine) {
+      hero.addEventListener("pointermove", onMove, { passive: true });
+      hero.addEventListener("pointerleave", onLeave);
+    }
     return () => {
-      window.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerleave", reset);
+      stop();
+      observer.disconnect();
+      hero.removeEventListener("pointermove", onMove);
+      hero.removeEventListener("pointerleave", onLeave);
     };
-  }, [reduce, tiltX, tiltY]);
+  }, [reduce]);
 
   return (
-    <div ref={ref} className={className}>
-      <m.div className={s.phoneTilt} style={reduce ? rest : { rotateX, rotateY }}>
+    <div ref={ref} className={className} role="img" aria-label={label}>
+      <div className={s.phoneTilt}>
         {Array.from({ length: 12 }, (_, i) => (
           <span key={i} className={s.phoneLayer} style={{ "--i": 12 - i } as CSSProperties} aria-hidden="true" />
         ))}
         <i className={s.phoneButton} aria-hidden="true" />
         <i className={s.phoneButton} aria-hidden="true" />
         <i className={s.phoneButton} aria-hidden="true" />
-        <div className={s.phoneFace}>{children}</div>
-      </m.div>
+        <div className={s.phoneFace}>
+          {children}
+        </div>
+      </div>
     </div>
   );
 }
@@ -717,12 +753,12 @@ type VolSteps = Content["volunteers"]["steps"];
 // m is the lift alone, for phones, where the phone is not scaled.
 const CAMERA = [
   { s: 1.1, y: 0, m: 0 }, // the sort pills and the first request card
-  { s: 1.15, y: -0.19, m: -0.22 }, // the same-day warning and "Apply for the request", low on the screen
-  { s: 1.15, y: -0.15, m: -0.14 }, // the "contact the requester" row and the request's title
+  { s: 1.15, y: -0.27, m: -0.22 }, // the same-day warning and "Apply for the request", low on the screen
+  { s: 1.15, y: -0.22, m: -0.14 }, // the "contact the requester" row and the request's title
   { s: 1.15, y: 0.02, m: 0 }, // the request card marked "taken by a volunteer"
 ];
 
-export function VolunteerSteps({ steps, events, hours }: { steps: VolSteps; events: string; hours: string }) {
+export function VolunteerSteps({ steps, hours }: { steps: VolSteps; hours: string }) {
   const [mounted, setMounted] = useState(false);
   const [sel, setSel] = useState(0);
   const [changes, setChanges] = useState(0);
@@ -862,10 +898,6 @@ export function VolunteerSteps({ steps, events, hours }: { steps: VolSteps; even
           </div>
         </div>
         <div className={s.volStickers} data-wobble={wobble || undefined}>
-          <span className={`${s.whoSticker} ${s.volEvents}`}>
-            <Icon name="check" />
-            {events}
-          </span>
           <span className={`${s.whoSticker} ${s.volHours}`}>
             <Icon name="award" />
             {hours}
@@ -874,4 +906,28 @@ export function VolunteerSteps({ steps, events, hours }: { steps: VolSteps; even
       </div>
     </>
   );
+}
+
+// "What do you need company for?": with a mouse, hovering a chip picks it, as
+// a click would (the radio is checked and a bubbling change fires, so the form
+// overlay, the place list and the hint scroll all follow). Leaving keeps the
+// last choice; focus doesn't move; touch and keys work as native radios do.
+export function HelpHover() {
+  useEffect(() => {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const off: (() => void)[] = [];
+    document.querySelectorAll<HTMLInputElement>('input[name="help"]').forEach((input) => {
+      const label = input.closest("label");
+      if (!label) return;
+      const on = (e: PointerEvent) => {
+        if (e.pointerType !== "mouse" || input.checked) return;
+        input.checked = true;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      };
+      label.addEventListener("pointerenter", on);
+      off.push(() => label.removeEventListener("pointerenter", on));
+    });
+    return () => off.forEach((f) => f());
+  }, []);
+  return null;
 }

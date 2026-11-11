@@ -57,8 +57,8 @@ export function SiteHeader({ lang, base = "", path = "", after }: { lang: Lang; 
             </a>
           </nav>
           <MobileMenu t={t.phases} label={t.menu} download={t.download} base={base} />
+          <LangSwitch lang={lang} path={path} />
         </div>
-        <LangSwitch lang={lang} path={path} />
       </Header>
     </>
   );

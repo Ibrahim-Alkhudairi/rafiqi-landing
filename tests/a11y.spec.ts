@@ -351,9 +351,9 @@ test("help picker: a pick tints the card and fills in the request form beside it
   await expect(fill("hospital")).toHaveCSS("opacity", "1");
   await expect(fill("shopping")).toHaveCSS("opacity", "0");
   await expect.poll(cardColour).not.toBe(shoppingColour);
-  // Pointer: a click picks too; hovering another kind changes nothing.
+  // Pointer: a click picks too (hovering picks as well; see the hover spec below).
   await group.getByRole("radio", { name: "Walking" }).click();
-  await group.getByText("Hospital").hover();
+  await page.mouse.move(0, 0);
   await expect(fill("walk")).toHaveCSS("opacity", "1");
   await expect(fill("hospital")).toHaveCSS("opacity", "0");
   // The map moves the meeting point there, and its card names that place and distance.
@@ -361,6 +361,51 @@ test("help picker: a pick tints the card and fills in the request form beside it
   await expect(page.locator("svg [data-tone='shopping']")).toBeHidden();
   await expect(page.locator("[class*='__meetCard'] strong")).toHaveText("King Abdullah Park, Al Malaz", { useInnerText: true });
   await expect(page.locator("[class*='__meetCard'] [class*='__distance']")).toHaveText("1.7 km from you", { useInnerText: true });
+});
+
+test("help picker with a mouse: hovering a kind picks it, as a click would, and leaving keeps the last one", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/en");
+  const group = page.getByRole("radiogroup", { name: "What do you need company for?" });
+  const fill = (tone: string) => page.locator(`[class*='__formFill'] > [data-tone='${tone}']`);
+  const typed = page.locator("[class*='__searchText']");
+  const place = (icon: string) => content.en.help.items.find((i) => i.icon === icon)!.place;
+  // The change event must bubble, so the form, the place list and the hint all hear it.
+  await page.evaluate(() => {
+    (window as unknown as { __changes: string[] }).__changes = [];
+    document.addEventListener("change", (e) => (window as unknown as { __changes: string[] }).__changes.push((e.target as HTMLInputElement).value));
+  });
+  const focusBefore = await page.evaluate(() => document.activeElement?.tagName);
+  await group.getByText("Hospital").hover();
+  await expect(group.getByRole("radio", { name: "Hospital" })).toBeChecked();
+  await expect(fill("hospital")).toHaveCSS("opacity", "1");
+  await expect(fill("shopping")).toHaveCSS("opacity", "0");
+  await expect(typed).toHaveText(place("hospital"));
+  expect(await page.evaluate(() => (window as unknown as { __changes: string[] }).__changes)).toEqual(["hospital"]);
+  expect(await page.evaluate(() => document.activeElement?.tagName), "hovering does not move the focus").toBe(focusBefore);
+  await group.getByText("Walking").hover();
+  await expect(group.getByRole("radio", { name: "Walking" })).toBeChecked();
+  await expect(typed).toHaveText(place("walk"));
+  // Moving off keeps the last hovered kind.
+  await page.mouse.move(5, 5);
+  await expect(group.getByRole("radio", { name: "Walking" })).toBeChecked();
+  await expect(fill("walk")).toHaveCSS("opacity", "1");
+  await expect(typed).toHaveText(place("walk"));
+});
+
+test("help picker on a touch screen: hovering does nothing, and a tap picks", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/en");
+  const group = page.getByRole("radiogroup", { name: "What do you need company for?" });
+  await group.getByText("Hospital").hover();
+  await page.waitForTimeout(300);
+  await expect(group.getByRole("radio", { name: "Shopping" })).toBeChecked();
+  await expect(group.getByRole("radio", { name: "Hospital" })).not.toBeChecked();
+  await group.getByText("Hospital").tap();
+  await expect(group.getByRole("radio", { name: "Hospital" })).toBeChecked();
+  await ctx.close();
 });
 
 test("the app's search, live: a suggestion picks the meeting place, and a pick in Ask shows there", async ({ page }) => {
@@ -457,47 +502,93 @@ for (const lang of ["en", "ar"] as const) {
   }
 }
 
-test("hero: the phone keeps its alt text, while the six help chips and both notes are hidden from screen readers", async ({ page }) => {
+for (const lang of ["ar", "en"] as const) {
+  const t = content[lang];
+
+  test(`/${lang} hero: screen readers get the whole "helps you with" sentence and not the rotating pills, the headline is unchanged and the phone is one named picture with decorative screens`, async ({ page }) => {
+    await page.goto(`/${lang}`);
+    const tree = await page.locator("#hero").ariaSnapshot();
+    expect(tree).toContain(t.hero.helpsAll);
+    // The sentence is the only place the line is read; the rotating row is hidden.
+    expect(tree.split(t.hero.helps).length - 1, "the lead-in appears once").toBe(1);
+    await expect(page.locator("#hero [class*='__helpsRow']")).toHaveAttribute("aria-hidden", "true");
+    await expect(page.locator("#hero [class*='__helpsChip']")).toHaveCount(6);
+    await expect(page.getByRole("heading", { level: 1, name: heroTitle[lang] })).toBeVisible();
+    // The phone is one picture named once; the five screens inside it are decoration.
+    await expect(page.locator("#hero [class$='__phone']")).toHaveAttribute("role", "img");
+    await expect(page.locator("#hero").getByRole("img", { name: t.hero.tourAlt })).toHaveCount(1);
+    const shots = page.locator("#hero [class$='__phone'] img");
+    await expect(shots).toHaveCount(t.hero.tour.length);
+    for (const img of await shots.all()) await expect(img).toHaveAttribute("alt", "");
+    // The floating chips and notes are gone.
+    await expect(page.locator("#hero [class*='__noteCheck'], #hero [class*='__noteArrived'], #hero [class*='__chip']")).toHaveCount(0);
+  });
+
+  test(`/${lang} hero with reduced motion: the first pill and the welcome screen are shown, the rest are not, and nothing in the hero animates`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${lang}`);
+    const pills = page.locator("#hero [class*='__helpsChip']");
+    await expect(pills.first()).toBeVisible();
+    for (const pill of (await pills.all()).slice(1)) await expect(pill).toBeHidden();
+    // The tour stands still on the welcome screen.
+    const slides = page.locator("#hero [class*='__tourSlide']");
+    await expect(slides).toHaveCount(t.hero.tour.length);
+    await expect(slides.first()).toBeVisible();
+    for (const slide of (await slides.all()).slice(1)) await expect(slide).toBeHidden();
+    expect(t.hero.tour[0].src).toContain("welcome");
+    expect(await page.evaluate(() => document.querySelector("#hero")!.getAnimations({ subtree: true }).length)).toBe(0);
+  });
+}
+
+test("hero: hovering pauses nothing, but keyboard focus in the hero pauses both the title pill and the phone's tour", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/en");
-  await expect(page.locator("#hero [class*='__phone'] img")).toHaveAttribute("alt", "Rafiqi welcome screen: the Rafiqi logo in the middle, above blue waves");
-  const chips = page.locator("#hero [class*='__chip']");
-  await expect(chips).toHaveCount(6);
-  for (const chip of await chips.all()) await expect(chip).toHaveAttribute("aria-hidden", "true");
-  for (const n of ["noteCheck", "noteArrived"]) {
-    await expect(page.locator(`#hero [class*='__${n}']`), n).toHaveAttribute("aria-hidden", "true");
+  const state = (cls: string) => page.locator(`#hero [class*='__${cls}']`).first().evaluate((el) => getComputedStyle(el).animationPlayState);
+  await page.mouse.move(5, 5);
+  expect(await state("helpsChip")).toBe("running");
+  expect(await state("tourSlide")).toBe("running");
+  // A mouse over the hero changes nothing: the pill and the tour keep going.
+  await page.mouse.move(700, 400);
+  await page.waitForTimeout(300);
+  expect(await state("helpsChip")).toBe("running");
+  expect(await state("tourSlide")).toBe("running");
+  await page.mouse.move(5, 5);
+  await page.locator("#hero a").first().focus();
+  await expect.poll(() => state("helpsChip")).toBe("paused");
+  await expect.poll(() => state("tourSlide")).toBe("paused");
+});
+
+test("hero tour: with motion, the five screens are all there and each one's animation is running", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/en");
+  const slides = page.locator("#hero [class*='__tourSlide']");
+  await expect(slides).toHaveCount(content.en.hero.tour.length);
+  await expect(slides).toHaveCount(5);
+  const states = await slides.evaluateAll((els) => els.map((el) => ({ name: getComputedStyle(el).animationName, state: getComputedStyle(el).animationPlayState, anims: el.getAnimations().length })));
+  for (const [i, st] of states.entries()) {
+    expect(st.name, `screen ${i}`).not.toBe("none");
+    expect(st.state, `screen ${i}`).toBe("running");
+    expect(st.anims, `screen ${i}`).toBeGreaterThan(0);
   }
 });
 
-test("hero with reduced motion: nothing moves, the arrived note is shown and the check note is not", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/en");
-  // One note at rest, so the picture is the same for everyone who asked for stillness.
-  await expect(page.locator("#hero [class*='__noteArrived']")).toHaveCSS("opacity", "1");
-  await expect(page.locator("#hero [class*='__noteCheck']")).toHaveCSS("opacity", "0");
-  for (const chip of await page.locator("#hero [class*='__chip']").all()) {
-    await expect(chip).toHaveCSS("animation-name", "none");
-  }
-});
-
-test("hero at 320px and at 200% text: no sideways scroll, and no chip over the headline", async ({ page }) => {
+test("hero at 320px and at 200% text: no sideways scroll, and the 'helps you with' line stays inside the screen", async ({ page }) => {
   const cdp = await page.context().newCDPSession(page);
   for (const [fontSize, width] of [[16, 320], [32, 390]]) {
     await cdp.send("Page.setFontSizes", { fontSizes: { standard: fontSize, fixed: 13 } });
     await page.setViewportSize({ width, height: 844 });
     for (const lang of ["en", "ar"]) {
       await page.goto(`/${lang}`);
-      const { overflow, hits } = await page.evaluate(() => {
-        const t = document.querySelector("#hero-title")!.getBoundingClientRect();
-        const hits = [...document.querySelectorAll("#hero [class*='__chip']")]
-          .filter((c) => getComputedStyle(c).display !== "none")
-          .filter((c) => {
-            const r = c.getBoundingClientRect();
-            return r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top;
-          }).length;
-        return { overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, hits };
+      const { overflow, right, left, phoneRight, phoneLeft } = await page.evaluate(() => {
+        const r = document.querySelector("#hero [class*='__helpsLine']")!.getBoundingClientRect();
+        const p = document.querySelector("#hero [class$='__phone']")!.getBoundingClientRect();
+        return { overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, right: r.right, left: r.left, phoneRight: p.right, phoneLeft: p.left };
       });
+      expect(phoneRight, `/${lang} at ${fontSize}px: phone right edge`).toBeLessThanOrEqual(width + 1);
+      expect(phoneLeft, `/${lang} at ${fontSize}px: phone left edge`).toBeGreaterThanOrEqual(-1);
       expect(overflow, `/${lang} at ${fontSize}px, ${width} wide`).toBe(0);
-      expect(hits, `/${lang} at ${fontSize}px, ${width} wide: chips over the headline`).toBe(0);
+      expect(right, `/${lang} at ${fontSize}px: line right edge`).toBeLessThanOrEqual(width + 1);
+      expect(left, `/${lang} at ${fontSize}px: line left edge`).toBeGreaterThanOrEqual(-1);
     }
   }
 });
@@ -600,11 +691,13 @@ for (const lang of ["ar", "en"] as const) {
   });
 
   test(`/${lang} who section: the volunteers' side comes up on its own after a while, without moving the focus`, async ({ page }) => {
+    // The timer is 8s; the rest is margin for a busy machine.
+    test.slow();
     await page.goto(`/${lang}`);
     await showWho(page);
     const active = () => page.evaluate(() => document.activeElement?.tagName);
     const before = await active();
-    await expect.poll(() => picks(page).give.getAttribute("aria-pressed"), { timeout: 11_000 }).toBe("true");
+    await expect.poll(() => picks(page).give.getAttribute("aria-pressed"), { timeout: 16_000 }).toBe("true");
     await bothCardsShown(page, "give");
     expect(await active()).toBe(before);
   });
@@ -799,8 +892,8 @@ test("about section: no sideways scroll at 320px and at 200% text", async ({ pag
   }
 });
 
-// The parts that enter on load. The chip bob and the note turns loop for good, so they are left out of "still running".
-const heroParts = "#hero-title, #hero-title [class*='__heroLine'], #hero [class*='__lead'], #hero [class*='__actions'], #hero [class*='__proof'], #hero [class*='__phone'] img, #hero [class*='__chip']";
+// The parts that enter on load. The rotating pills loop for good, so they are left out of "still running".
+const heroParts = "#hero-title, #hero-title [class*='__heroLine'], #hero [class*='__lead'], #hero [class*='__actions'], #hero [class*='__proof'], #hero [class$='__phone'], #hero [class*='__helpsLine']";
 
 test("hero entrance: the headline animates in on load, and within 2.5s everything is shown and only the loops keep running", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });

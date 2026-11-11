@@ -18,15 +18,20 @@ export const en: Content = {
   hero: {
     title: "A volunteer companion\nfor people with disabilities",
     lead: "Ask in the app for someone to go with you to the hospital, the shops or any errand, and a verified volunteer meets you where you choose. Free.",
+    helps: "Helps you with",
+    helpsAll: "Helps you with walks, shopping, hospital visits, ministry visits, getting around and anything else.",
+    tour: [
+      { src: "/welcome.png", w: 1242, h: 2148 },
+      { src: "/screens/who-request.jpg", w: 720, h: 1560 },
+      { src: "/screens/tour-request.jpg", w: 738, h: 1600 },
+      { src: "/screens/tour-location.jpg", w: 738, h: 1600 },
+      { src: "/screens/tour-requests.jpg", w: 720, h: 1560 },
+    ],
+    tourAlt: "Screens from the Rafiqi app, changing one after another: the welcome screen, choosing the kind of help, the request details, confirming the meeting place, then your requests and their status.",
     volunteer: "I want to volunteer",
     proof: [
       { icon: "verified", text: "Every volunteer's identity verified through Nafath" },
       { icon: "association", text: "By Liajlehum" },
-    ],
-    phoneAlt: "Rafiqi welcome screen: the Rafiqi logo in the middle, above blue waves",
-    notes: [
-      { icon: "check", title: "Volunteer assigned", text: "Dental appointment · 10:12 PM" },
-      { icon: "arrived", title: "Volunteer arrived", text: "At the meeting point now" },
     ],
   },
   about: {
@@ -78,12 +83,12 @@ export const en: Content = {
   },
   help: {
     items: [
-      { icon: "walk", title: "Walking", place: "King Abdullah Park, Al Malaz" },
-      { icon: "shopping", title: "Shopping", place: "Riyadh Park, Al Aqiq" },
-      { icon: "hospital", title: "Hospital", place: "Dr. Sulaiman Al-Habib Hospital, Al Olaya" },
-      { icon: "gov", title: "Ministries and government offices", place: "Civil Affairs office, Al Malaz" },
-      { icon: "transport", title: "Getting around", place: "Olaya metro station" },
-      { icon: "other", title: "Other needs", place: "Kingdom Tower, Al Olaya" },
+      { icon: "walk", title: "Walking", app: "رفيقي في المشي", place: "King Abdullah Park, Al Malaz", phrase: "walks" },
+      { icon: "shopping", title: "Shopping", app: "رفيقي في التسوق", place: "Riyadh Park, Al Aqiq", phrase: "shopping" },
+      { icon: "hospital", title: "Hospital", app: "رفيقي في المستشفى", place: "Dr. Sulaiman Al-Habib Hospital, Al Olaya", phrase: "hospital visits" },
+      { icon: "gov", title: "Ministries and government offices", app: "رفيقي في الوزارات", short: "Ministries", place: "Civil Affairs office, Al Malaz", phrase: "ministry visits" },
+      { icon: "transport", title: "Getting around", app: "رفيقي في التنقل", place: "Olaya metro station", phrase: "getting around" },
+      { icon: "other", title: "Other needs", app: "احتياجات أخرى", place: "Kingdom Tower, Al Olaya", phrase: "anything else" },
     ],
   },
   manifesto: "Not a ride. Not a carer. A verified person from your community who meets you where you choose, and goes with you.",
@@ -148,17 +153,14 @@ export const en: Content = {
   },
   volunteers: {
     title: "Volunteer as a companion",
-    lead: "On the other side of every request is a volunteer like you, helping at a time that suits them.",
     steps: [
       { title: "Browse requests", text: "Sort them by soonest, newest or nearest to you (nearest needs location access).", screen: { src: "/screens/who-volunteer.jpg", w: 591, h: 1280, alt: "The volunteer home screen: association announcements, “All available requests” with the sort buttons (soonest, newest, nearest to you), and request cards below" } },
       { title: "Apply for a request", text: "Apply for the request that suits you, and it's assigned to you straight away. You can't withdraw from a request dated today.", screen: { src: "/screens/vol-apply.jpg", w: 591, h: 1280, alt: "Details of request #550, a medical injection appointment marked “New”, a notice that you can't withdraw from a request dated today, and an “Apply for the request” button" } },
       { title: "Contact the requester", text: "You see an option to contact them, with their first name, and agree on the details of the outing.", screen: { src: "/screens/vol-contact.jpg", w: 348, h: 755, alt: "Request #481, a work meeting marked “Volunteer assigned”, with “Contact the requester” by first name, the request type and the meeting place" } },
-      { title: "Meet", text: "You meet them where they chose, and your volunteer hours count.", screen: { src: "/screens/vol-requests.jpg", w: 348, h: 755, alt: "The volunteer's My requests: “Received” and “Applied” tabs, with a medical injection appointment marked “Volunteer assigned”, its date and time" } },
+      { title: "Meet", text: "You meet them where they chose, and your volunteer hours count on the National Volunteering Platform.", screen: { src: "/screens/vol-requests.jpg", w: 348, h: 755, alt: "The volunteer's My requests: “Received” and “Applied” tabs, with a medical injection appointment marked “Volunteer assigned”, its date and time" } },
     ],
-    events: "Browse the association's events and see the requests made inside each one.",
-    eventsShort: "Browse the association's events",
-    hoursShort: "Your hours count",
-    hours: "Your volunteer hours are counted with the National Center for Non-Profit Sector (NCNP).",
+    hoursShort: "Your hours count on the National Volunteering Platform",
+    hours: "Your volunteer hours count on the National Volunteering Platform.",
   },
   faq: {
     title: "Common questions",
@@ -342,7 +344,7 @@ export const en: Content = {
                 q: "Can two volunteers accept the same request?",
                 a: "No. A request is assigned to one volunteer. If several volunteers try to accept at about the same time, the first acceptance to reach the system succeeds and the others see that the request is no longer available.",
               },
-              { q: "Do volunteer hours count?", a: "Yes. Your volunteer hours are counted with the National Center for Non-Profit Sector (NCNP)." },
+              { q: "Do volunteer hours count?", a: "Yes. Your volunteer hours count on the National Volunteering Platform." },
             ],
           },
           {

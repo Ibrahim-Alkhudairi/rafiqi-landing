@@ -162,7 +162,7 @@ export function FaqSearch({
                 <div key={group.title} className={s.faqGroup} hidden={!some}>
                   {group.title && <h3>{group.title}</h3>}
                   {group.items.map((it) => (
-                    <details key={it.q} className={s.qa} hidden={!it.match}>
+                    <details key={it.q} name="faq" className={s.qa} hidden={!it.match}>
                       <summary>
                         {/* One box: the summary is a flex row, and each loose piece would be its own item. */}
                         <span>

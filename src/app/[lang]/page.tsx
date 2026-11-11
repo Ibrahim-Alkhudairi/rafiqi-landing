@@ -5,7 +5,7 @@ import { content, hasLang, links, social } from "@/content";
 import { requestFills, type Content } from "@/content/ar";
 import { Icon, type IconName } from "./icons";
 import { Phone, SiteFooter, SiteHeader, StoreBadges } from "./chrome";
-import { HeroGlow, HeroPhone, PlaceSearch, TiltCard, VolunteerSteps, WhoSwitcher } from "./motion";
+import { HeroGlow, HeroPhone, HelpHover, PlaceSearch, VolunteerSteps, WhoSwitcher } from "./motion";
 import s from "./page.module.css";
 
 export default async function Page({ params }: PageProps<"/[lang]">) {
@@ -31,6 +31,25 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
                   </span>
                 ))}
               </h1>
+              {/* "Helps you with" and the kinds of help, one at a time: CSS only, a
+                  stack of chips each shown for 2.2s (see "Helps line"). The
+                  rotation is decoration; the whole sentence is for screen readers. */}
+              <p className={s.helpsLine}>
+                <span className={s.srOnly}>{t.hero.helpsAll}</span>
+                <span className={s.helpsRow} aria-hidden="true">
+                  <span>{t.hero.helps}</span>
+                  <span className={s.helpsStack}>
+                    {t.help.items.map(({ icon, phrase }, i) => (
+                      <span key={icon} className={s.helpsChip} data-tone={icon} style={{ "--i": i } as CSSProperties}>
+                        <span>
+                          <Icon name={icon as IconName} />
+                        </span>
+                        {phrase}
+                      </span>
+                    ))}
+                  </span>
+                </span>
+              </p>
               <p className={s.lead}>{t.hero.lead}</p>
               <div className={s.actions}>
                 <StoreBadges t={t} />
@@ -45,42 +64,25 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
               </ul>
             </div>
 
-            {/* The phone among the kinds of help it covers; decoration, but
-                for the phone's own alt text. */}
+            {/* The phone, touring the app. */}
             <div className={s.visual}>
               <span className={s.ring} aria-hidden="true" />
               <span className={`${s.ring} ${s.ring2}`} aria-hidden="true" />
-              <HeroPhone className={s.phone}>
+              <HeroPhone
+                className={s.phone}
+                label={t.hero.tourAlt}
+              >
+                {/* The app, one screen after another, swiping across the phone
+                    (CSS only, "App tour" in the CSS); the sequence is described
+                    once by the phone's label. */}
                 <span className={s.phoneScreen}>
-                  <Image src="/welcome.png" alt={t.hero.phoneAlt} width={1242} height={2148} sizes="18rem" preload />
+                  {t.hero.tour.map((shot, i) => (
+                    <span key={shot.src} className={s.tourSlide} style={{ "--i": i } as CSSProperties}>
+                      <Image src={shot.src} alt="" width={shot.w} height={shot.h} sizes="20rem" preload={i === 0} />
+                    </span>
+                  ))}
                 </span>
               </HeroPhone>
-              {(["hospital", "shopping", "gov", "transport", "walk", "other"] as const).map((icon) => (
-                <span key={icon} className={s.chip} data-tone={icon} aria-hidden="true">
-                  <span>
-                    <Icon name={icon} />
-                  </span>
-                  {t.help.items.find((item) => item.icon === icon)!.title}
-                </span>
-              ))}
-              {/* Illustrative notifications built from the app's real statuses. */}
-              {t.hero.notes.map((note, i) => (
-                <div key={note.title} className={`${s.note} ${i === 0 ? s.noteCheck : s.noteArrived}`} aria-hidden="true">
-                  <TiltCard className={s.noteInner}>
-                    {note.icon === "arrived" ? (
-                      <span className={s.arrivedDot} />
-                    ) : (
-                      <span className={s.noteIcon}>
-                        <Icon name={note.icon as IconName} />
-                      </span>
-                    )}
-                    <span className={s.noteText}>
-                      <strong>{note.title}</strong>
-                      {note.text}
-                    </span>
-                  </TiltCard>
-                </div>
-              ))}
             </div>
           </div>
         </section>
@@ -214,7 +216,8 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
               <h4 id="help-title">{t.before.panelTitle}</h4>
               {/* Native radios, so hover, tap, click and the arrow keys all
                   work, with or without JavaScript ("Help picker" in the CSS). */}
-              <div className={s.chips} role="radiogroup" aria-labelledby="help-title">
+              <HelpHover />
+            <div className={s.chips} role="radiogroup" aria-labelledby="help-title">
                 {t.help.items.map((item) => (
                   <label key={item.icon} data-tone={item.icon}>
                     <input type="radio" name="help" value={item.icon} defaultChecked={item.icon === "shopping"} />
@@ -386,9 +389,8 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
         <section id="volunteers" className={s.volBand} aria-labelledby="volunteers-title">
           <div className={s.volHead}>
             <h2 id="volunteers-title">{t.volunteers.title}</h2>
-            <p className={s.lead}>{t.volunteers.lead}</p>
           </div>
-          <VolunteerSteps steps={t.volunteers.steps} events={t.volunteers.eventsShort} hours={t.volunteers.hoursShort} />
+          <VolunteerSteps steps={t.volunteers.steps} hours={t.volunteers.hoursShort} />
         </section>
 
         <section id="faq" className={s.faqSection} aria-labelledby="faq-title">
@@ -401,7 +403,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
           <div>
             <div className={s.faqPanel}>
               {t.faq.items.map((item) => (
-                <details key={item.q} className={s.qa}>
+                <details key={item.q} name="faq" className={s.qa}>
                   <summary>{item.q}</summary>
                   <p>{item.a}</p>
                 </details>
