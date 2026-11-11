@@ -3869,7 +3869,6 @@ html[dir="rtl"] .faqBack svg {
 }
 
 /* One category picked: the others are hidden. */
-.faqPage:has([name="faq-topic"][value="top"]:checked) .faqTopic:not([data-topic="top"]),
 .faqPage:has([name="faq-topic"][value="general"]:checked) .faqTopic:not([data-topic="general"]),
 .faqPage:has([name="faq-topic"][value="disability"]:checked) .faqTopic:not([data-topic="disability"]),
 .faqPage:has([name="faq-topic"][value="volunteers"]:checked) .faqTopic:not([data-topic="volunteers"]) {

@@ -23,14 +23,40 @@ for (const path of ["/ar", "/en", "/fr"]) {
 }
 
 // The landing page keeps only the seven most asked; the rest live on /faq/.
-const openAll = (page: import("@playwright/test").Page, root: string) =>
-  page.evaluate((r) => document.querySelectorAll(`${r} details`).forEach((d) => ((d as HTMLDetailsElement).open = true)), root);
+// The questions form an exclusive accordion (they share name="faq"), so opening
+// one closes the rest: "everything open" does not exist. These open each shown
+// question in turn instead.
+const eachQuestion = async (page: import("@playwright/test").Page, root: string, check: (i: number) => Promise<void>) => {
+  const n = await page.locator(`${root} details`).count();
+  for (let i = 0; i < n; i++) {
+    const opened = await page.evaluate(([r, k]) => {
+      const d = document.querySelectorAll<HTMLDetailsElement>(`${r} details`)[k as number];
+      if (d.hidden) return false;
+      d.open = true;
+      return true;
+    }, [root, i] as [string, number]);
+    if (opened) await check(i);
+  }
+};
+// The widest the page gets while each shown question is open in turn.
+const widestWithEachOpen = (page: import("@playwright/test").Page, root: string) =>
+  page.evaluate((r) => {
+    let widest = 0;
+    for (const d of document.querySelectorAll<HTMLDetailsElement>(`${r} details`)) {
+      if (d.hidden) continue;
+      d.open = true;
+      widest = Math.max(widest, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    }
+    return widest;
+  }, root);
+const axeTags = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "wcag2aaa", "best-practice"];
 
 for (const lang of ["ar", "en"] as const) {
   test(`/${lang} FAQ on the home page: the seven most asked, then a link to all the questions`, async ({ page }) => {
     await page.goto(`/${lang}`);
     const section = page.locator("#faq");
-    await expect(section.locator("details[class*='__qa']")).toHaveCount(7);
+    await expect(section.locator("details[class*='__qa']")).toHaveCount(content[lang].faq.items.length);
+    expect(content[lang].faq.items).toHaveLength(7);
     await expect(section.getByRole("radio")).toHaveCount(0);
     await expect(section.locator("a[class*='__faqMore']")).toHaveText(content[lang].faq.more);
     await expect(section.locator("a[class*='__faqMore']")).toHaveAttribute("href", `/${lang}/faq/`);
@@ -40,34 +66,41 @@ for (const lang of ["ar", "en"] as const) {
     await expect(question.locator("> p")).toBeVisible();
   });
 
-  test(`/${lang} FAQ on the home page with every question open: no axe violations`, async ({ page }) => {
+  test(`/${lang} FAQ on the home page, each question opened in turn: no axe violations`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${lang}`);
-    await openAll(page, "#faq");
-    const { violations } = await new AxeBuilder({ page })
-      .include("#faq")
-      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "wcag2aaa", "best-practice"])
-      .analyze();
-    expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(" | ")}`)).toEqual([]);
+    await eachQuestion(page, "#faq", async (i) => {
+      const { violations } = await new AxeBuilder({ page }).include("#faq details[open]").withTags(axeTags).analyze();
+      expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(" | ")}`), `question ${i + 1}`).toEqual([]);
+    });
+  });
+
+  test(`/${lang} FAQ on the home page: opening a second question closes the first`, async ({ page }) => {
+    await page.goto(`/${lang}`);
+    const qs = page.locator("#faq details[class*='__qa']");
+    expect(await qs.evaluateAll((els) => new Set(els.map((e) => e.getAttribute("name"))).size), "one shared name").toBe(1);
+    await qs.nth(0).locator("> summary").click();
+    await expect(qs.nth(0)).toHaveAttribute("open", "");
+    await qs.nth(1).locator("> summary").click();
+    await expect(qs.nth(1)).toHaveAttribute("open", "");
+    await expect(qs.nth(0)).not.toHaveAttribute("open", "");
+    await expect(page.locator("#faq details[open]")).toHaveCount(1);
   });
 }
 
-test("FAQ on the home page with every question open: no sideways scroll at 320px and at 200% text", async ({ page }) => {
-  const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+test("FAQ on the home page, each question opened in turn: no sideways scroll at 320px and at 200% text", async ({ page }) => {
   const cdp = await page.context().newCDPSession(page);
   for (const lang of ["ar", "en"]) {
     await cdp.send("Page.setFontSizes", { fontSizes: { standard: 16, fixed: 13 } });
     await page.setViewportSize({ width: 320, height: 800 });
     await page.goto(`/${lang}`);
-    await openAll(page, "#faq");
-    expect(await overflow(), `/${lang} at 320px`).toBe(0);
+    expect(await widestWithEachOpen(page, "#faq"), `/${lang} at 320px`).toBe(0);
     // The browser's text-size setting, as in the 200% spec above.
     await cdp.send("Page.setFontSizes", { fontSizes: { standard: 32, fixed: 26 } });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`/${lang}`);
     await expect(page.locator("html")).toHaveCSS("font-size", "32px");
-    await openAll(page, "#faq");
-    expect(await overflow(), `/${lang} at 200% text`).toBe(0);
+    expect(await widestWithEachOpen(page, "#faq"), `/${lang} at 200% text`).toBe(0);
   }
 });
 
@@ -237,7 +270,7 @@ test("no JavaScript: no section is left hidden", async ({ browser }) => {
     await expect(section).toHaveCSS("opacity", "1");
   }
   // The seven questions are plain details elements, open or shut with no script.
-  await expect(page.locator("#faq details")).toHaveCount(7);
+  await expect(page.locator("#faq details")).toHaveCount(content.ar.faq.items.length);
   await page.locator("#faq details > summary").first().click();
   await expect(page.locator("#faq details > p").first()).toBeVisible();
   await page.getByRole("radio", { name: "المشي" }).check();
@@ -1149,7 +1182,9 @@ test("FAQ search folds Arabic spelling: hamza, tashkeel, ta marbuta and Latin ca
 
 // Read from the content, so adding a question does not mean editing a number here.
 const topicCount = (i: number) => content.en.faq.topics[i].groups.reduce((n, g) => n + g.items.length, 0);
-const faqCounts = { top: content.en.faq.items.length, general: topicCount(0), disability: topicCount(1), volunteers: topicCount(2) };
+const faqCounts = { general: topicCount(0), disability: topicCount(1), volunteers: topicCount(2) };
+// Group titles that are empty render no h3; the rest do.
+const faqSubheadings = content.en.faq.topics.flatMap((tp) => tp.groups).filter((g) => g.title).length;
 const faqTotal = Object.values(faqCounts).reduce((n, c) => n + c, 0);
 const wordFor = { ar: "مجاني", en: "free" };
 
@@ -1166,7 +1201,7 @@ for (const lang of ["ar", "en"] as const) {
     await search(page).fill(text);
   };
 
-  test(`/${lang} FAQ page: the title, no site bar, a way back, every question in four topics, and the footer`, async ({ page }) => {
+  test(`/${lang} FAQ page: the title, no site bar, a way back, every question in three topics, and the footer`, async ({ page }) => {
     await page.goto(`/${lang}/faq/`);
     await expect(page).toHaveTitle(pg.metaTitle);
     await expect(page.getByRole("heading", { level: 1, name: pg.title })).toBeVisible();
@@ -1177,11 +1212,12 @@ for (const lang of ["ar", "en"] as const) {
     await expect(page.locator("main details[class*='__qa']")).toHaveCount(faqTotal);
     const questions = await page.locator("main details[class*='__qa'] > summary").allInnerTexts();
     expect(new Set(questions).size, "each question once").toBe(faqTotal);
-    await expect(page.locator("section[class*='__faqTopic']")).toHaveCount(4);
-    for (const id of ["top", "general", "disability", "volunteers"]) {
+    await expect(page.locator("section[class*='__faqTopic']")).toHaveCount(3);
+    await expect(page.locator("main h3")).toHaveCount(faqSubheadings);
+    for (const id of ["general", "disability", "volunteers"] as const) {
       const topic = page.locator(`section[data-topic='${id}']`);
       await expect(topic.getByRole("heading", { level: 2 })).toHaveCount(1);
-      await expect(topic.locator("details[class*='__qa']")).toHaveCount(faqCounts[id as keyof typeof faqCounts]);
+      await expect(topic.locator("details[class*='__qa']")).toHaveCount(faqCounts[id]);
     }
     await expect(page.getByRole("contentinfo")).toHaveCount(1);
     // The footer's section links are absolute, since this is not the home page.
@@ -1230,8 +1266,8 @@ for (const lang of ["ar", "en"] as const) {
   test(`/${lang} FAQ page: the pills filter by topic, show their counts, and follow the search`, async ({ page }) => {
     await page.goto(`/${lang}/faq/`);
     const group = page.getByRole("radiogroup", { name: pg.filter });
-    await expect(group.getByRole("radio")).toHaveCount(5);
-    await expect(group.locator("[class*='__faqCount']")).toHaveText([faqTotal, faqCounts.top, faqCounts.general, faqCounts.disability, faqCounts.volunteers].map(String));
+    await expect(group.getByRole("radio")).toHaveCount(4);
+    await expect(group.locator("[class*='__faqCount']")).toHaveText([faqTotal, faqCounts.general, faqCounts.disability, faqCounts.volunteers].map(String));
     await page.locator("[class*='__faqPills'] label", { hasText: t.faq.topics[2].title }).click();
     await expect(pill(page, "volunteers")).toBeChecked();
     await expect(page.locator("section[data-topic='volunteers']")).toBeVisible();
@@ -1250,7 +1286,7 @@ for (const lang of ["ar", "en"] as const) {
     await page.goto(`/${lang}/faq/?q=${encodeURIComponent(wordFor[lang])}&topic=general`);
     await expect(search(page)).toHaveValue(wordFor[lang]);
     await expect(pill(page, "general")).toBeChecked();
-    await expect(page.locator("section[data-topic='top']")).toBeHidden();
+    await expect(page.locator("section[data-topic='disability']")).toBeHidden();
     await expect(page).toHaveURL(/q=/);
     await expect(page).toHaveURL(/topic=general/);
   });
@@ -1272,8 +1308,9 @@ for (const lang of ["ar", "en"] as const) {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/${lang}/faq/`);
     const scan = async (label: string) => {
-      await openAll(page, "main");
-      const { violations } = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "wcag2aaa", "best-practice"]).analyze();
+      // One question open (they are exclusive); the questions are each scanned in turn in the next spec.
+      await page.evaluate(() => { const d = [...document.querySelectorAll<HTMLDetailsElement>("main details")].find((x) => !x.hidden); if (d) d.open = true; });
+      const { violations } = await new AxeBuilder({ page }).withTags(axeTags).analyze();
       expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(" | ")}`), label).toEqual([]);
     };
     await scan("default");
@@ -1289,16 +1326,40 @@ for (const lang of ["ar", "en"] as const) {
   });
 }
 
-test("FAQ page: no sideways scroll at 320px and at 200% text, with every question open", async ({ page }) => {
+for (const lang of ["ar", "en"] as const) {
+  test(`/${lang} FAQ page, each question opened in turn: no axe violations`, async ({ page }) => {
+    test.slow();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(`/${lang}/faq/`);
+    await eachQuestion(page, "main", async (i) => {
+      const { violations } = await new AxeBuilder({ page }).include("main details[open]").withTags(axeTags).analyze();
+      expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(" | ")}`), `question ${i + 1}`).toEqual([]);
+    });
+  });
+
+  test(`/${lang} FAQ page: opening a second question closes the first, across the topics`, async ({ page }) => {
+    await page.goto(`/${lang}/faq/`);
+    const qs = page.locator("main details[class*='__qa']");
+    expect(await qs.evaluateAll((els) => new Set(els.map((e) => e.getAttribute("name"))).size), "one shared name").toBe(1);
+    await qs.nth(0).locator("> summary").click();
+    await expect(qs.nth(0)).toHaveAttribute("open", "");
+    // The last question sits in another topic.
+    await qs.last().scrollIntoViewIfNeeded();
+    await qs.last().locator("> summary").click();
+    await expect(qs.last()).toHaveAttribute("open", "");
+    await expect(qs.nth(0)).not.toHaveAttribute("open", "");
+    await expect(page.locator("main details[open]")).toHaveCount(1);
+  });
+}
+
+test("FAQ page, each question opened in turn: no sideways scroll at 320px and at 200% text", async ({ page }) => {
   const cdp = await page.context().newCDPSession(page);
   for (const [fontSize, width] of [[16, 320], [32, 390]]) {
     await cdp.send("Page.setFontSizes", { fontSizes: { standard: fontSize, fixed: 13 } });
     await page.setViewportSize({ width, height: 844 });
     for (const lang of ["ar", "en"]) {
       await page.goto(`/${lang}/faq/`);
-      await openAll(page, "main");
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      expect(overflow, `/${lang}/faq/ at ${fontSize}px, ${width} wide`).toBe(0);
+      expect(await widestWithEachOpen(page, "main"), `/${lang}/faq/ at ${fontSize}px, ${width} wide`).toBe(0);
     }
   }
 });
@@ -1399,14 +1460,9 @@ for (const lang of ["ar", "en"] as const) {
       await expect(page.locator(`#${id} img[src*='${file}']`).first(), id).toHaveAttribute("alt", screen.alt);
     }
   });
-
-  // The app is not claimed to work with screen readers; the guide only explains how to set one up.
-  test(`/${lang} FAQ: the screen-reader answer does not claim the app works with one`, async ({ page }) => {
-    await page.goto(`/${lang}/faq/`);
-    const answers = await page.locator("main details", { has: page.locator("summary", { hasText: lang === "ar" ? "قارئ الشاشة" : /screen reader/i }) }).locator("> p").allInnerTexts();
-    expect(answers.length).toBeGreaterThan(0);
-    for (const a of answers) expect(a.trim()).not.toMatch(/^(نعم|Yes)/);
-  });
+  // There is deliberately no guard on the screen-reader answer. An earlier spec
+  // required it not to start with "Yes"; the user chose to publish the official
+  // FAQ text exactly («نعم، لكن قد تختلف التجربة…»), and PRODUCT.md records it.
 }
 
 // ---- The journey ----

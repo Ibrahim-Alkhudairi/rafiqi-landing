@@ -24,7 +24,6 @@ export default async function FaqPage({ params }: PageProps<"/[lang]/faq">) {
   if (!hasLang(lang)) notFound();
   const t = content[lang];
   const topics = [
-    { id: "top", title: t.faq.top, groups: [{ title: "", items: t.faq.items }] },
     ...t.faq.topics.map((topic, i) => ({ id: (["general", "disability", "volunteers"] as const)[i], title: topic.title, groups: topic.groups })),
   ];
 
