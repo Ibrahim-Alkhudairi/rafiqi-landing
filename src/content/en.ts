@@ -139,8 +139,7 @@ export const en: Content = {
     },
   },
   matched: {
-    title: "A volunteer takes your request",
-    lead: "A verified volunteer takes it, and your request's status changes to “Volunteer assigned”.",
+    title: "Who will go with you?",
     points: [
       { icon: "verified", title: "Identity verified through Nafath", text: "Everyone signs in with their ID number through Nafath, and every volunteer is verified before they can accept a request." },
       { icon: "chat", title: "Contact after acceptance", text: "Once they accept, you see an option to contact the volunteer, with their first name." },

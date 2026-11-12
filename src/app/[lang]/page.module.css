@@ -3091,11 +3091,14 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
 }
 
 /* Step 3: the volunteer takes it, and why you can trust them. */
-/* Wide: the title and its line sit level with the middle of the points. */
-@media (min-width: 52rem) {
-  .chapter:has(> .matchedList) > .chapterCopy {
-    align-self: center;
-  }
+/* Wide (64em): the title on top, the three points in a row of equal boxes,
+   each with its icon on top. Below that they stack in one column. */
+.chapter:has(> .matchedList) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.chapter:has(> .matchedList) .stepTitle {
+  max-width: none;
 }
 
 .matchedList {
@@ -3106,13 +3109,30 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   gap: var(--space-3);
 }
 
+@media (min-width: 64em) {
+  .matchedList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+
 .matchedList li {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
   column-gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
+  border: 1px solid transparent;
   border-radius: 20px;
   background: var(--surface);
+}
+
+@media (min-width: 64em) {
+  .matchedList li {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-2);
+    padding: 1.5rem;
+  }
 }
 
 .matchedList svg {
@@ -3122,12 +3142,51 @@ main:has([value="other"]:checked) :is(.meetCard, .mapFrame) [data-tone]:not([dat
   color: var(--link);
 }
 
+@media (min-width: 64em) {
+  .matchedList svg {
+    grid-row: auto;
+    margin-block-end: var(--space-2);
+  }
+}
+
 .matchedList strong {
   font-size: var(--text-lg);
 }
 
 .matchedList li > span {
   color: var(--muted);
+}
+
+/* Hover: the box lifts a little, a hairline of link blue shows, its icon
+   nudges. Fine pointers and motion only; with reduced motion only the
+   border changes. */
+@media (hover: hover) and (pointer: fine) {
+  .matchedList li:hover {
+    border-color: rgb(10 74 159 / 0.35);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .matchedList li {
+    transition:
+      translate 0.2s ease-out,
+      box-shadow 0.2s ease-out,
+      border-color 0.2s ease-out;
+  }
+
+  .matchedList li:hover {
+    translate: 0 -3px;
+    box-shadow: 0 14px 28px -14px rgb(17 19 24 / 0.28);
+  }
+
+  .matchedList svg {
+    transition: scale 0.2s ease-out, rotate 0.2s ease-out;
+  }
+
+  .matchedList li:hover svg {
+    scale: 1.08;
+    rotate: -4deg;
+  }
 }
 
 /* The other side of the same journey: one light-blue band, no boxes inside. The

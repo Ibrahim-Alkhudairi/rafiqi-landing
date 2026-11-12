@@ -325,8 +325,7 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
           <section id="matched" className={s.chapter} aria-labelledby="matched-title">
             <div className={s.chapterCopy}>
               <h3 id="matched-title" className={s.stepTitle}>{t.matched.title}</h3>
-              <p className={s.lead}>{t.matched.lead}</p>
-            </div>
+              </div>
             <ul className={s.matchedList}>
               {t.matched.points.map((point) => (
                 <li key={point.title}>
