@@ -140,6 +140,7 @@ export const en: Content = {
   },
   matched: {
     title: "Who will go with you?",
+    answer: "A verified volunteer from your community",
     points: [
       { icon: "verified", title: "Identity verified through Nafath", text: "Everyone signs in with their ID number through Nafath, and every volunteer is verified before they can accept a request." },
       { icon: "chat", title: "Contact after acceptance", text: "Once they accept, you see an option to contact the volunteer, with their first name." },

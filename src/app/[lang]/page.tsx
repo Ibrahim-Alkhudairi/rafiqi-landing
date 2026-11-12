@@ -324,8 +324,16 @@ export default async function Page({ params }: PageProps<"/[lang]">) {
             </p>
           <section id="matched" className={s.chapter} aria-labelledby="matched-title">
             <div className={s.chapterCopy}>
-              <h3 id="matched-title" className={s.stepTitle}>{t.matched.title}</h3>
+              {/* The question and its answer on one line; the answer is the
+                  paragraph right after the heading, so the outline stays clean. */}
+              <div className={s.answerRow}>
+                <h3 id="matched-title" className={s.stepTitle}>{t.matched.title}</h3>
+                <p className={s.answerPill}>
+                  <Icon name="verified" />
+                  {t.matched.answer}
+                </p>
               </div>
+            </div>
             <ul className={s.matchedList}>
               {t.matched.points.map((point) => (
                 <li key={point.title}>
